@@ -13,10 +13,12 @@ fn main() {
         match stream {
             Ok(mut stream) => {
                 let mut buff = [0u8; 512];
-                stream.read(&mut buff).unwrap();
+                loop {
+                 stream.read(&mut buff).unwrap();
 
-                for _line in str::from_utf8(&buff).unwrap().lines() {
-                    stream.write_all("+PONG\r\n".as_bytes()).unwrap();
+                 stream.write_all(b"+PONG\r\n").unwrap();
+                 stream.flush().unwrap()
+
                 }
             }
             Err(e) => {
