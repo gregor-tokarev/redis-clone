@@ -1,9 +1,12 @@
 use core::fmt;
+use std::any::Any;
 
 #[derive(Debug)]
 pub enum Command {
     Ping,
     Echo(String),
+    Set(String, String),
+    Get(String),
     Unrecognized,
 }
 
@@ -15,10 +18,6 @@ impl fmt::Display for ParsingError {
         write!(f, "Error parsing command")
     }
 }
-//
-// impl Error for ParsingError {
-//
-// }
 
 impl<'a> Command {
     pub fn new(command_str: &str) -> Result<Self, ParsingError> {
@@ -33,7 +32,6 @@ impl<'a> Command {
         let mut main_statements: Vec<&str> = vec![];
 
         for _i in 0..number_of_commands {
-            // let length = Self::length_statment(lines.next().ok_or_else(|| ParsingError)?)?;
             lines.next().ok_or_else(|| ParsingError)?;
             let main_statement = lines.next().ok_or_else(|| ParsingError)?;
 
@@ -43,6 +41,8 @@ impl<'a> Command {
         Ok(match *main_statements.first().ok_or_else(|| ParsingError)? {
             "ping" => Self::Ping,
             "echo" => Self::Echo(main_statements[1].to_owned()),
+            "set" => Self::Set(main_statements[1].to_owned(), main_statements[2].to_owned()),
+            "get" => Self::Get(main_statements[1].to_owned()),
             _ => Self::Unrecognized
         })
     }
@@ -53,15 +53,4 @@ impl<'a> Command {
             Err(_e) => Err(ParsingError),
         }
     }
-    // pub fn from_str(command_str: &str) -> Self {
-    //     let lowered_command = command_str.to_lowercase();
-    //     println!("command: {lowered_command}");
-    //
-    //     if lowered_command.starts_with("ping") {Self::Ping}
-    //     else if lowered_command.starts_with("echo") {
-    //         Self::Echo(lowered_command.split(" ").collect::<Vec<&str>>()[1].to_string())
-    //     } else {
-    //         Self::Unrecognized
-    //     }
-    // }
 }

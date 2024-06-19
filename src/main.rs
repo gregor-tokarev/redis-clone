@@ -1,12 +1,16 @@
 use std::str;
+use std::sync::{Arc};
 
 use command_router::Command;
 use executor::execute_command;
+use storage::Storage;
 use tokio::io::AsyncReadExt;
+use tokio::sync::Mutex;
 use tokio::net::TcpListener;
 
 mod command_router;
 mod executor;
+mod storage;
 
 #[tokio::main]
 async fn main() {
@@ -16,11 +20,14 @@ async fn main() {
     // Uncomment this block to pass the first stage
     //
 
+    let storage = Arc::new(Mutex::new(Storage::new()));
+
     let listener = TcpListener::bind("127.0.0.1:6379")
         .await
         .expect("Port already in use");
 
     loop {
+        let storage_clone = storage.clone();
         let stream = listener.accept().await;
 
         match stream {
@@ -33,7 +40,8 @@ async fn main() {
 
                         let command_str = str::from_utf8(&buf).unwrap();
                         if let Ok(com) = Command::new(command_str){
-                            execute_command(com, &mut s).await;
+                            let mut storage_guard = storage_clone.lock().await;
+                            execute_command(com, &mut s, &mut *storage_guard).await;
                         }
                     }
                 });
