@@ -1,5 +1,5 @@
 // Uncomment this block to pass the first stage
-use std::{io::{Read, Write}, net::TcpListener};
+use std::{io::{Read, Write}, net::TcpListener, str};
 
 fn main() {
     // You can use print statements as follows for debugging, they'll be visible when running tests.
@@ -12,10 +12,12 @@ fn main() {
     for stream in listener.incoming() {
         match stream {
             Ok(mut stream) => {
-                let mut buff = [0u8; 1024];
+                let mut buff = [0u8; 512];
                 stream.read(&mut buff).unwrap();
 
-                stream.write("+PONG\r\n".as_bytes()).unwrap();
+                for _line in str::from_utf8(&buff).unwrap().lines() {
+                    stream.write("+PONG\r\n".as_bytes()).unwrap();
+                }
             }
             Err(e) => {
                 println!("error: {}", e);
