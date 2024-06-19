@@ -16,7 +16,7 @@ fn main() {
                 stream.read(&mut buff).unwrap();
 
                 for _line in str::from_utf8(&buff).unwrap().lines() {
-                    stream.write("+PONG\r\n".as_bytes()).unwrap();
+                    stream.write_all("+PONG\r\n".as_bytes()).unwrap();
                 }
             }
             Err(e) => {
