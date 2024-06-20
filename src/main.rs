@@ -2,6 +2,8 @@ use std::str;
 use std::sync::Arc;
 use std::time::Duration;
 
+use args::Args;
+use clap::Parser;
 use command_router::Command;
 use executor::execute_command;
 use storage::Storage;
@@ -12,26 +14,23 @@ use tokio::sync::Mutex;
 mod command_router;
 mod executor;
 mod storage;
+mod args;
 
 #[tokio::main]
 async fn main() {
-    // You can use print statements as follows for debugging, they'll be visible when running tests.
-    // println!("Logs from your program will appear here!");
-
-    // Uncomment this block to pass the first stage
-    //
+    let args = Args::parse();
 
     let storage = Arc::new(Mutex::new(Storage::new()));
 
     let stor = storage.clone();
     tokio::spawn(async move {
         loop {
-            // stor.lock().await.tick();
+            stor.lock().await.tick();
             tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
         }
     });
 
-    let listener = TcpListener::bind("127.0.0.1:6379")
+    let listener = TcpListener::bind(format!("127.0.0.1:{}", args.port))
         .await
         .expect("Port already in use");
 

@@ -79,8 +79,6 @@ impl Storage {
             }
         };
 
-        println!("Expired keys: {}", keys.len());
-
         for key in keys {
             self.remove(&key);
         }
