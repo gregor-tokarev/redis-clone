@@ -1,10 +1,11 @@
 use crate::{
-    command_router::SetCommand,
-    storage::{Item, Storage},
+    command_context::CommandContext, command_router::SetCommand, storage::{Item}
 };
 use tokio::{io::AsyncWriteExt, net::TcpStream, time::Duration};
 
-pub async fn set_command(socket: &mut TcpStream, storage: &mut Storage, command: SetCommand) {
+pub async fn set_command(socket: &mut TcpStream, context: &CommandContext, command: SetCommand) {
+    let mut storage = context.storage.lock().await;
+
     let duration = command
         .expire_after
         .map(|expire| Duration::from_millis(expire.parse().unwrap()));

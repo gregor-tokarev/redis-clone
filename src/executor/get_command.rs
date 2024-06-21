@@ -1,7 +1,9 @@
-use crate::{command_router::GetCommand, storage::Storage};
+use crate::{command_context::CommandContext, command_router::GetCommand};
 use tokio::{io::AsyncWriteExt, net::TcpStream};
 
-pub async fn get_command(socket: &mut TcpStream, storage: &mut Storage, command: GetCommand) {
+pub async fn get_command(socket: &mut TcpStream, context: &CommandContext, command: GetCommand) {
+    let storage = context.storage.lock().await;
+
     let value = storage.get(&command.key);
 
     match value {

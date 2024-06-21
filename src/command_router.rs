@@ -57,7 +57,9 @@ impl<'a> Command {
 
         Ok(match *main_statements.first().ok_or(ParsingError)? {
             "ping" => Self::Ping,
-            "echo" => Self::Echo(EchoCommand { echo: main_statements[1].to_owned() }),
+            "echo" => Self::Echo(EchoCommand {
+                echo: main_statements[1].to_owned(),
+            }),
             "set" => {
                 let mut set_command = SetCommand {
                     key: main_statements[1].to_owned(),

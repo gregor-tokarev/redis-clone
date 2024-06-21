@@ -6,4 +6,7 @@ pub struct Args {
     /// Name of the person to greet
     #[arg(short, long, default_value_t = 6379)]
     pub port: usize,
+
+    #[arg(short, long)]
+    pub replicaof: Option<String>
 }
