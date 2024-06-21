@@ -1,7 +1,7 @@
 use std::{
     collections::HashMap,
     sync::{Arc, Mutex},
-    time::{Duration},
+    time::Duration,
 };
 
 use tokio::time::Instant;
@@ -89,7 +89,7 @@ impl Item {
     pub fn build_response_string(&self) -> String {
         match self {
             Self::SimpleString(s) => format!("${}\r\n{}\r\n", s.len(), s),
-            _ => String::new()
+            _ => String::new(),
         }
     }
 }

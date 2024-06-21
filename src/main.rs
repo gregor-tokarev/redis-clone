@@ -1,6 +1,5 @@
 use std::str;
 use std::sync::Arc;
-use std::time::Duration;
 
 use args::Args;
 use clap::Parser;
@@ -11,10 +10,10 @@ use tokio::io::AsyncReadExt;
 use tokio::net::TcpListener;
 use tokio::sync::Mutex;
 
+mod args;
 mod command_router;
 mod executor;
 mod storage;
-mod args;
 
 #[tokio::main]
 async fn main() {
@@ -49,7 +48,7 @@ async fn main() {
                         let command_str = str::from_utf8(&buf).unwrap();
                         if let Ok(com) = Command::new(command_str) {
                             let mut storage_guard = storage_clone.lock().await;
-                            execute_command(com, &mut s, &mut *storage_guard).await;
+                            execute_command(com, &mut s, &mut storage_guard).await;
                         }
                     }
                 });
