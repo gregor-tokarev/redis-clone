@@ -18,17 +18,15 @@ mod executor;
 mod resp_utils;
 mod storage;
 mod command_context;
+mod http;
 
 #[tokio::main]
 async fn main() {
     let args = Args::parse();
 
-    // let storage = Arc::new(Mutex::new(Storage::new()));
-    // let replication = Arc::new(Mutex::new(Replication::new(args.replicaof)));
+    let context = Arc::new(CommandContext::new(Replication::new(args.clone()), Storage::new()));
 
-    let context = Arc::new(CommandContext::new(Replication::new(args.replicaof), Storage::new()));
-
-    context.replication_info.lock().await.ping_master().await;
+    context.replication_info.lock().await.connect_master().await;
 
     let stor = context.clone();
     tokio::spawn(async move {

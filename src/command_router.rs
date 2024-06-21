@@ -23,6 +23,7 @@ pub enum Command {
     Echo(EchoCommand),
     Set(SetCommand),
     Get(GetCommand),
+    Replconf,
     Info,
     Unrecognized,
 }
@@ -55,6 +56,7 @@ impl<'a> Command {
             main_statements.push(main_statement);
         }
 
+        // println!("{:?}", main_statements.first().clone());
         Ok(match *main_statements.first().ok_or(ParsingError)? {
             "ping" => Self::Ping,
             "echo" => Self::Echo(EchoCommand {
@@ -79,6 +81,7 @@ impl<'a> Command {
                 key: main_statements[1].to_owned(),
             }),
             "info" => Command::Info,
+            "replconf" => Command::Replconf,
             _ => Self::Unrecognized,
         })
     }
