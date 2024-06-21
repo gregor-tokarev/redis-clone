@@ -23,6 +23,7 @@ pub enum Command {
     Echo(EchoCommand),
     Set(SetCommand),
     Get(GetCommand),
+    Info,
     Unrecognized,
 }
 
@@ -75,6 +76,7 @@ impl<'a> Command {
             "get" => Self::Get(GetCommand {
                 key: main_statements[1].to_owned(),
             }),
+            "info" => Command::Info,
             _ => Self::Unrecognized,
         })
     }
