@@ -1,4 +1,4 @@
-use crate::{command_context::CommandContext, command_router::Command, resp_utils::{build_bulk}};
+use crate::{command_context::CommandContext, command_router::Command, resp_utils::build_bulk};
 use tokio::{io::AsyncWriteExt, net::TcpStream};
 
 pub async fn info_command(socket: &mut TcpStream, context: &CommandContext, _command: Command) {
@@ -6,7 +6,7 @@ pub async fn info_command(socket: &mut TcpStream, context: &CommandContext, _com
 
     let role = format!("role:{}\r\n", if replication.is_master {"master"} else {"slave"});
 
-    let mut response = format!("{}", role);
+    let mut response = role.to_string();
 
     if let Some(master_id) = &replication.master_id {
         let id_str = format!("master_replid:{}\r\n", master_id);

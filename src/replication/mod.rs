@@ -1,6 +1,6 @@
 use std::{char, isize};
 
-use rand::{distributions::Alphanumeric, random, thread_rng, Rng};
+use rand::{distributions::Alphanumeric, thread_rng, Rng};
 
 
 pub(crate) struct Replication {
