@@ -1,6 +1,11 @@
+use core::str;
 use std::{char, isize};
 
 use rand::{distributions::Alphanumeric, thread_rng, Rng};
+use tokio::net::TcpStream;
+use tokio::io::{AsyncReadExt, AsyncWriteExt};
+
+use crate::resp_utils::{build_array, build_bulk};
 
 
 pub(crate) struct Replication {
@@ -33,5 +38,17 @@ impl Replication {
 
     fn generate_master_id() -> String {
         thread_rng().sample_iter(Alphanumeric).take(40).map(char::from).collect()
+    }
+
+    pub async fn ping_master(&self) {
+        if self.is_master {
+            return
+        };
+
+        if let (Some(master_host), Some(master_port)) = (&self.master_host, self.master_port) {
+            let mut stream = TcpStream::connect(format!("{}:{}", master_host, master_port)).await.unwrap();
+
+            stream.write_all(build_array(build_bulk("PING".to_owned())).as_bytes()).await.unwrap();
+        }
     }
 }

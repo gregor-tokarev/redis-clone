@@ -1,9 +1,7 @@
 
 use std::str;
 use std::sync::Arc;
-
-use args::Args;
-use clap::Parser;
+use args::Args; use clap::Parser;
 use command_context::CommandContext;
 use command_router::Command;
 use executor::execute_command;
@@ -29,6 +27,8 @@ async fn main() {
     // let replication = Arc::new(Mutex::new(Replication::new(args.replicaof)));
 
     let context = Arc::new(CommandContext::new(Replication::new(args.replicaof), Storage::new()));
+
+    context.replication_info.lock().await.ping_master().await;
 
     let stor = context.clone();
     tokio::spawn(async move {
