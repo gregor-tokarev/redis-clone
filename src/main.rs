@@ -38,7 +38,7 @@ async fn main() {
     let stor = context.clone();
     tokio::spawn(async move {
         loop {
-            stor.storage.lock().await.tick();
+            stor.storage.lock().await.tick().await;
             tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
         }
     });
