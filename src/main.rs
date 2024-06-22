@@ -26,6 +26,7 @@ async fn main() {
     let context = Arc::new(CommandContext::new(
         Replication::new(args.clone()),
         Storage::new(),
+        args.clone()
     ));
 
     context.replication_info.lock().await.connect_master().await;

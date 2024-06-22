@@ -1,4 +1,5 @@
 use core::fmt;
+use std::str::FromStr;
 
 #[derive(Debug)]
 pub struct SetCommand {
@@ -18,6 +19,16 @@ pub struct EchoCommand {
 }
 
 #[derive(Debug)]
+pub enum ConfigCommandAction {
+    Get(String),
+}
+
+#[derive(Debug)]
+pub struct ConfigCommand {
+    pub action: ConfigCommandAction,
+}
+
+#[derive(Debug)]
 pub enum Command {
     Ping,
     Echo(EchoCommand),
@@ -25,6 +36,7 @@ pub enum Command {
     Get(GetCommand),
     Replconf,
     Info,
+    Config(ConfigCommand),
     Unrecognized,
 }
 
@@ -56,7 +68,6 @@ impl<'a> Command {
             main_statements.push(main_statement);
         }
 
-        // println!("{:?}", main_statements.first().clone());
         Ok(match *main_statements.first().ok_or(ParsingError)? {
             "ping" => Self::Ping,
             "echo" => Self::Echo(EchoCommand {
@@ -82,6 +93,9 @@ impl<'a> Command {
             }),
             "info" => Command::Info,
             "replconf" => Command::Replconf,
+            "config" => Command::Config(ConfigCommand {
+                action: ConfigCommandAction::Get(main_statements[2].to_owned()),
+            }),
             _ => Self::Unrecognized,
         })
     }

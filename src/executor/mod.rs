@@ -1,6 +1,7 @@
 use crate::command_context::CommandContext;
 
 use crate::Command;
+use config_command::config_command;
 use echo_command::echo_command;
 use get_command::get_command;
 use info_command::info_command;
@@ -16,6 +17,7 @@ mod info_command;
 mod ping_command;
 mod set_command;
 mod replconf_command;
+mod config_command;
 
 pub async fn execute_command(command: Command, socket: &mut TcpStream, context: &CommandContext) {
     match command {
@@ -25,6 +27,7 @@ pub async fn execute_command(command: Command, socket: &mut TcpStream, context: 
         Command::Get(cmd) => get_command(socket, context, cmd).await,
         Command::Info => info_command(socket, context, command).await,
         Command::Replconf => replconf_command(socket, context, command).await,
+        Command::Config(cmd) => config_command(socket, context, cmd).await,
         Command::Unrecognized => {
             println!("Unrecognized command");
             socket.write_all(b"+OK\r\n").await.unwrap();

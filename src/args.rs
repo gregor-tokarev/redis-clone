@@ -8,5 +8,11 @@ pub struct Args {
     pub port: usize,
 
     #[arg(short, long)]
-    pub replicaof: Option<String>
+    pub replicaof: Option<String>,
+
+    #[arg(long)]
+    pub dir: Option<String>,
+
+    #[arg(long)]
+    pub dbfilename: Option<String>
 }

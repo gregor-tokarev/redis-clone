@@ -1,7 +1,4 @@
-use std::time::Duration;
-
 use rand::{distributions::Alphanumeric, thread_rng, Rng};
-use tokio::time;
 
 use crate::resp_utils::{build_array, build_bulk};
 use crate::{args::Args, tcp_request::TcpRequest};
@@ -12,7 +9,7 @@ pub(crate) struct Replication {
     pub master_id: Option<String>,
     pub master_host: Option<String>,
     pub master_port: Option<isize>,
-    args: Args,
+    pub args: Args
 }
 
 impl<'a> Replication {
@@ -48,24 +45,15 @@ impl<'a> Replication {
 
     pub async fn connect_master(&self) {
         if self.is_master {
-            println!("I'm master");
             return;
         };
-
-        println!("I'm slave");
-        println!("{:?}", self);
 
         if let (Some(master_host), Some(master_port)) = (&self.master_host, self.master_port) {
             let url = format!("{}:{}", master_host, master_port);
 
-            let res = self.ping_master(&url).await;
-            println!("{res}");
-
-            let res = self.ping_master_port(&url).await;
-            println!("{res}");
-
+            self.ping_master(&url).await;
+            self.ping_master_port(&url).await;
             self.ping_master_capabilities(&url).await;
-            println!("{res}");
         }
     }
 
