@@ -6,7 +6,10 @@ use tokio::{
     io::{self, AsyncReadExt, AsyncSeek, AsyncSeekExt, AsyncWriteExt, BufReader},
 };
 
-use crate::{args::Args, storage::StorageState};
+use crate::{
+    args::Args,
+    storage::{Item, StorageState},
+};
 
 pub struct RDB {
     dirname: String,
@@ -71,39 +74,43 @@ impl RDB {
             reader.read_to_end(&mut buffer).await?;
 
             if buffer.is_empty() {
-                return Ok(HashMap::new())
+                return Ok(HashMap::new());
             };
 
             let mut iter = buffer.into_iter().skip_while(|&b| b != 0xfb).skip(1);
 
             let mut loaded_state: StorageState = HashMap::new();
 
-            let _hashtable_size = iter.next().unwrap();
+            let hashtable_size = iter.next().unwrap();
             let _expire_hashtable_size = iter.next().unwrap();
 
-            let _value_type = iter.next().unwrap();
+            for _ in 0..hashtable_size {
+                let _value_type = iter.next().unwrap();
 
-            let key_len = iter.next().unwrap();
-            let mut key_buf: Vec<char> = vec![];
-            for _j in 0..key_len {
-                let c = iter.next().unwrap();
-                key_buf.push(c as char)
-            }
+                let key_len = iter.next().unwrap();
+                let mut key_buf: Vec<char> = vec![];
+                for _j in 0..key_len {
+                    let c = iter.next().unwrap();
+                    key_buf.push(c as char)
+                }
 
-            let value_len = iter.next().unwrap();
-            let mut value_buf: Vec<char> = vec![];
-            for _j in 0..value_len {
-                let c = iter.next().unwrap();
-                value_buf.push(c as char);
+                let value_len = iter.next().unwrap();
+                let mut value_buf: Vec<char> = vec![];
+                for _j in 0..value_len {
+                    let c = iter.next().unwrap();
+                    value_buf.push(c as char);
+                }
+
+                loaded_state.insert(
+                    key_buf.into_iter().collect(),
+                    Item::SimpleString(value_buf.into_iter().collect()),
+                );
             }
 
             println!("Dump loaded.");
-            loaded_state.insert(
-                key_buf.into_iter().collect(),
-                crate::storage::Item::SimpleString(value_buf.into_iter().collect()),
-            );
+            println!("{loaded_state:?}");
 
-            reader.seek(io::SeekFrom::Start(0)).await.unwrap();
+            // reader.seek(io::SeekFrom::Start(0)).await.unwrap();
 
             Ok(loaded_state)
         } else {
