@@ -4,7 +4,7 @@ use tokio::{io::AsyncWriteExt, net::TcpStream};
 pub async fn get_command(socket: &mut TcpStream, context: &CommandContext, command: GetCommand) {
     let storage = context.storage.lock().await;
 
-    let value = storage.get(&command.key);
+    let value = storage.get(&command.key).await;
 
     match value {
         Some(v) => {

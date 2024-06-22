@@ -10,9 +10,9 @@ pub struct Args {
     #[arg(short, long)]
     pub replicaof: Option<String>,
 
-    #[arg(long)]
-    pub dir: Option<String>,
+    #[arg(long, default_value_t=String::from("./"))]
+    pub dir: String,
 
-    #[arg(long)]
-    pub dbfilename: Option<String>
+    #[arg(long, default_value_t=String::from("dump.rdb"))]
+    pub dbfilename: String
 }

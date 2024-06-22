@@ -22,7 +22,10 @@ pub struct EchoCommand {
     pub echo: String,
 }
 
-
+#[derive(Debug)]
+pub struct KeysCommand {
+    pub pattern: String
+}
 
 #[derive(Debug)]
 pub enum Command {
@@ -33,6 +36,7 @@ pub enum Command {
     Replconf,
     Info,
     Config(ConfigCommand),
+    Keys(KeysCommand),
     Unrecognized,
 }
 
@@ -90,6 +94,9 @@ impl<'a> Command {
             "info" => Command::Info,
             "replconf" => Command::Replconf,
             "config" => Command::Config(ConfigCommand::from_statements(&main_statements[1..])),
+            "keys" => Command::Keys(KeysCommand {
+                pattern: main_statements[1].to_owned()
+            }),
             _ => Self::Unrecognized,
         })
     }

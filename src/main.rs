@@ -3,8 +3,8 @@ use clap::Parser;
 use command_context::CommandContext;
 use command_router::Command;
 use executor::execute_command;
+use rdb::RDB;
 use replication::Replication;
-use std::str;
 use std::sync::Arc;
 use storage::Storage;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
@@ -14,6 +14,7 @@ mod args;
 mod command_context;
 mod command_router;
 mod executor;
+mod rdb;
 mod replication;
 mod resp_utils;
 mod storage;
@@ -23,10 +24,13 @@ mod tcp_request;
 async fn main() {
     let args = Args::parse();
 
+    let mut rdb = RDB::new(args.clone());
+    let loaded_state = rdb.start_sync().await.unwrap();
+
     let context = Arc::new(CommandContext::new(
         Replication::new(args.clone()),
-        Storage::new(),
-        args.clone()
+        Storage::new(Some(loaded_state)),
+        args.clone(),
     ));
 
     context.replication_info.lock().await.connect_master().await;

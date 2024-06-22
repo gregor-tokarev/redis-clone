@@ -14,7 +14,7 @@ pub async fn set_command(socket: &mut TcpStream, context: &CommandContext, comma
         command.key.to_owned(),
         Item::SimpleString(command.value.to_owned()),
         duration,
-    );
+    ).await;
 
     socket.write_all(b"+OK\r\n").await.unwrap();
 }

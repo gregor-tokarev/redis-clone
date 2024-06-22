@@ -13,33 +13,29 @@ pub async fn config_command(
     match command.action {
         ConfigCommandAction::Get(key) => match key.as_str() {
             "dir" => {
-                if let Some(dir) = &context.args.dir {
-                    socket
-                        .write_all(
-                            build_array(vec![
-                                build_bulk("dir".to_owned()),
-                                build_bulk(dir.to_owned()),
-                            ])
-                            .as_bytes(),
-                        )
-                        .await
-                        .unwrap();
-                }
-            },
+                socket
+                    .write_all(
+                        build_array(vec![
+                            build_bulk("dir".to_owned()),
+                            build_bulk(context.args.dir.clone()),
+                        ])
+                        .as_bytes(),
+                    )
+                    .await
+                    .unwrap();
+            }
             "dbfilename" => {
-                if let Some(filename) = &context.args.dbfilename {
-                    socket
-                        .write_all(
-                            build_array(vec![
-                                build_bulk("dbfilename".to_owned()),
-                                build_bulk(filename.to_owned()),
-                            ])
-                            .as_bytes(),
-                        )
-                        .await
-                        .unwrap();
-                }
-            },
+                socket
+                    .write_all(
+                        build_array(vec![
+                            build_bulk("dbfilename".to_owned()),
+                            build_bulk(context.args.dbfilename.clone()),
+                        ])
+                        .as_bytes(),
+                    )
+                    .await
+                    .unwrap();
+            }
             _ => {}
         },
         ConfigCommandAction::Unrecognized => {}
