@@ -1,6 +1,12 @@
-use std::{collections::HashMap, sync::Arc, time::Duration};
+use std::{
+    collections::HashMap,
+    sync::Arc,
+    time::{Duration, SystemTime, UNIX_EPOCH},
+};
 
 use tokio::{sync::Mutex, time::Instant};
+
+use crate::executor;
 
 #[derive(Debug, Clone)]
 pub enum Item {
@@ -12,15 +18,17 @@ pub enum Item {
 
 pub type StorageState = HashMap<String, Item>;
 
+pub type StorageExpire = HashMap<String, u128>;
+
 pub struct Storage {
     state: Arc<Mutex<StorageState>>,
-    expire_list: Arc<Mutex<HashMap<String, Instant>>>,
+    expire_list: Arc<Mutex<StorageExpire>>,
 }
 impl Storage {
-    pub fn new(dump: Option<StorageState>) -> Self {
+    pub fn new(dump: (StorageState, StorageExpire)) -> Self {
         Self {
-            state: Arc::new(Mutex::new(dump.unwrap())),
-            expire_list: Arc::new(Mutex::new(HashMap::new())),
+            state: Arc::new(Mutex::new(dump.0)),
+            expire_list: Arc::new(Mutex::new(dump.1)),
         }
     }
 
@@ -28,13 +36,15 @@ impl Storage {
         self.state.lock().await.insert(key.clone(), value);
 
         if let Some(expr_after) = expire_after {
-            let now = Instant::now();
-            let expire_at = now.checked_add(expr_after);
+            let now = self.now();
+            let expire_at = now + expr_after;
 
-            if let Some(time) = expire_at {
-                self.expire_list.lock().await.insert(key, time);
-            }
+            self.expire_list.lock().await.insert(key, expire_at.as_millis());
         }
+    }
+
+    fn now(&self) -> Duration {
+        SystemTime::now().duration_since(UNIX_EPOCH).unwrap()
     }
 
     pub async fn remove(&self, key: &str) {
@@ -47,7 +57,7 @@ impl Storage {
 
         if let Some(expire_time) = expire_list.get(key) {
             println!("{:?} - {:?}", Instant::now(), expire_time);
-            if Instant::now() >= *expire_time {
+            if self.now().as_millis() >= *expire_time {
                 state.remove(key);
                 expire_list.remove(key);
                 return None;
@@ -64,7 +74,7 @@ impl Storage {
     }
 
     pub async fn tick(&mut self) {
-        let current_time = Instant::now();
+        let current_time = self.now().as_millis();
         let mut keys = vec![];
 
         {

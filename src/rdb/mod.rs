@@ -1,14 +1,22 @@
-use std::{char, collections::HashMap, fmt::write, hash::Hash};
+use std::{
+    char,
+    collections::HashMap,
+    fmt::write,
+    hash::Hash,
+    time::{Duration, SystemTime, UNIX_EPOCH},
+    u64,
+};
 
 use bytes::buf;
 use tokio::{
     fs,
     io::{self, AsyncReadExt, AsyncSeek, AsyncSeekExt, AsyncWriteExt, BufReader},
+    time::Instant,
 };
 
 use crate::{
     args::Args,
-    storage::{Item, StorageState},
+    storage::{Item, StorageExpire, StorageState},
 };
 
 pub struct RDB {
@@ -61,7 +69,7 @@ impl RDB {
         format!("{}/{}", self.dirname, self.dbfilename)
     }
 
-    pub async fn start_sync(&mut self) -> Result<StorageState, Box<dyn std::error::Error>> {
+    pub async fn start_sync(&mut self) -> Result<(StorageState, StorageExpire), Box<dyn std::error::Error>> {
         if self.file.is_none() {
             self.ensure_file_exists().await.unwrap();
         };
@@ -74,24 +82,59 @@ impl RDB {
             reader.read_to_end(&mut buffer).await?;
 
             if buffer.is_empty() {
-                return Ok(HashMap::new());
+                return Ok((HashMap::new(), HashMap::new()));
             };
 
             let mut iter = buffer.into_iter().skip_while(|&b| b != 0xfb).skip(1);
 
             let mut loaded_state: StorageState = HashMap::new();
+            let mut loaded_expiries: StorageExpire = HashMap::new();
 
             let hashtable_size = iter.next().unwrap();
             let _expire_hashtable_size = iter.next().unwrap();
 
             for _ in 0..hashtable_size {
-                let _value_type = iter.next().unwrap();
+                let value_header = iter.next().unwrap();
+
+                // Expire in milseconds
+                let expire = if value_header == 0xfc {
+                    let mut expire = [0u8; 8];
+                    for i in 0..8 {
+                        expire[i] = iter.next().unwrap()
+                    }
+
+                    Some(u64::from_le_bytes(expire))
+                } else if value_header == 0xfd {
+                    let mut expire = [0u8; 8];
+                    for i in 0..4 {
+                        expire[i] = iter.next().unwrap()
+                    }
+
+                    Some(u64::from_le_bytes(expire))
+                } else {
+                    None
+                };
+
+                if let Some(_) = expire {
+                    let _value_type = iter.next().unwrap();
+                }
 
                 let key_len = iter.next().unwrap();
                 let mut key_buf: Vec<char> = vec![];
                 for _j in 0..key_len {
                     let c = iter.next().unwrap();
                     key_buf.push(c as char)
+                }
+                let key = key_buf.into_iter().collect::<String>();
+
+                if let Some(exp) = expire {
+                    let duration = if value_header == 0xfc {
+                        Duration::from_millis(exp)
+                    } else {
+                        Duration::from_secs(exp)
+                    };
+
+                    loaded_expiries.insert(key.clone(), duration.as_millis());
                 }
 
                 let value_len = iter.next().unwrap();
@@ -101,20 +144,14 @@ impl RDB {
                     value_buf.push(c as char);
                 }
 
-                loaded_state.insert(
-                    key_buf.into_iter().collect(),
-                    Item::SimpleString(value_buf.into_iter().collect()),
-                );
+                loaded_state.insert(key, Item::SimpleString(value_buf.into_iter().collect()));
             }
 
             println!("Dump loaded.");
-            println!("{loaded_state:?}");
 
-            // reader.seek(io::SeekFrom::Start(0)).await.unwrap();
-
-            Ok(loaded_state)
+            Ok((loaded_state, loaded_expiries))
         } else {
-            Ok(HashMap::new())
+            Ok((HashMap::new(), HashMap::new()))
         }
 
         // println!("wanna write");

@@ -25,11 +25,11 @@ async fn main() {
     let args = Args::parse();
 
     let mut rdb = RDB::new(args.clone());
-    let loaded_state = rdb.start_sync().await.unwrap();
+    let dump = rdb.start_sync().await.unwrap();
 
     let context = Arc::new(CommandContext::new(
         Replication::new(args.clone()),
-        Storage::new(Some(loaded_state)),
+        Storage::new(dump),
         args.clone(),
     ));
 
