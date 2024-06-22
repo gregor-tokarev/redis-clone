@@ -1,7 +1,10 @@
+use std::time::Duration;
+
 use rand::{distributions::Alphanumeric, thread_rng, Rng};
+use tokio::time;
 
 use crate::resp_utils::{build_array, build_bulk};
-use crate::{args::Args, http::Http};
+use crate::{args::Args, tcp_request::TcpRequest};
 
 #[derive(Debug)]
 pub(crate) struct Replication {
@@ -55,18 +58,21 @@ impl<'a> Replication {
         if let (Some(master_host), Some(master_port)) = (&self.master_host, self.master_port) {
             let url = format!("{}:{}", master_host, master_port);
 
-            let res1 = self.ping_master(&url).await;
-            let res2 = self.ping_master_port(&url).await;
-            let res3 = self.ping_master_capabilities(&url).await;
+            let res = self.ping_master(&url).await;
+            println!("{res}");
 
-            println!("{:?}", vec![res1, res2, res3]);
+            let res = self.ping_master_port(&url).await;
+            println!("{res}");
+
+            self.ping_master_capabilities(&url).await;
+            println!("{res}");
         }
     }
 
     async fn ping_master(&self, url: &str) -> String {
         let body = build_array(vec![build_bulk("PING".to_owned())]);
 
-        Http::new(url, body).make_request().await
+        TcpRequest::new(url, body).make_request().await
     }
 
     async fn ping_master_capabilities(&self, url: &str) -> String {
@@ -76,7 +82,7 @@ impl<'a> Replication {
             build_bulk("psync2".to_owned()),
         ]);
 
-        Http::new(url, body).make_request().await
+        TcpRequest::new(url, body).make_request().await
     }
     async fn ping_master_port(&self, url: &str) -> String {
         let body = build_array(vec![
@@ -85,6 +91,6 @@ impl<'a> Replication {
             build_bulk(format!("{}", self.args.port)),
         ]);
 
-        Http::new(url, body).make_request().await
+        TcpRequest::new(url, body).make_request().await
     }
 }

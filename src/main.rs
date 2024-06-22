@@ -1,30 +1,32 @@
-
-use std::str;
-use std::sync::Arc;
-use args::Args; use clap::Parser;
+use args::Args;
+use clap::Parser;
 use command_context::CommandContext;
 use command_router::Command;
 use executor::execute_command;
 use replication::Replication;
+use std::str;
+use std::sync::Arc;
 use storage::Storage;
-use tokio::io::AsyncReadExt;
+use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::TcpListener;
 
-
 mod args;
-mod replication;
+mod command_context;
 mod command_router;
 mod executor;
+mod replication;
 mod resp_utils;
 mod storage;
-mod command_context;
-mod http;
+mod tcp_request;
 
 #[tokio::main]
 async fn main() {
     let args = Args::parse();
 
-    let context = Arc::new(CommandContext::new(Replication::new(args.clone()), Storage::new()));
+    let context = Arc::new(CommandContext::new(
+        Replication::new(args.clone()),
+        Storage::new(),
+    ));
 
     context.replication_info.lock().await.connect_master().await;
 
@@ -47,13 +49,17 @@ async fn main() {
         match stream {
             Ok((mut s, _)) => {
                 tokio::spawn(async move {
-                    loop {
-                        let mut buf = [0u8; 512];
+                    let mut buffer = [0u8; 1024];
+                    while let Ok(bytes_read) = s.read(&mut buffer).await {
+                        println!("{bytes_read}");
+                        if bytes_read == 0 {
+                            break;
+                        }
 
-                        s.read(&mut buf).await.expect("Error reading buffer");
+                        let command_str =
+                            String::from_utf8_lossy(&buffer[..bytes_read]).to_string();
 
-                        let command_str = str::from_utf8(&buf).unwrap();
-                        if let Ok(com) = Command::new(command_str) {
+                        if let Ok(com) = Command::new(&command_str) {
                             execute_command(com, &mut s, &context_clone).await;
                         }
                     }
