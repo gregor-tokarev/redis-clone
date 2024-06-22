@@ -52,7 +52,6 @@ async fn main() {
                 tokio::spawn(async move {
                     let mut buffer = [0u8; 1024];
                     while let Ok(bytes_read) = s.read(&mut buffer).await {
-                        println!("{bytes_read}");
                         if bytes_read == 0 {
                             break;
                         }

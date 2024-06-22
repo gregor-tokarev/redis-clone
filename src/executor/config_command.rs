@@ -1,6 +1,6 @@
 use crate::{
     command_context::CommandContext,
-    command_router::{ConfigCommand, ConfigCommandAction, GetCommand},
+    command_router::{config::ConfigCommand, config::ConfigCommandAction},
     resp_utils::{build_array, build_bulk},
 };
 use tokio::{io::AsyncWriteExt, net::TcpStream};
@@ -42,5 +42,6 @@ pub async fn config_command(
             },
             _ => {}
         },
+        ConfigCommandAction::Unrecognized => {}
     };
 }

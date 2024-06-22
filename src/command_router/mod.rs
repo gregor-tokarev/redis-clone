@@ -1,6 +1,10 @@
 use core::fmt;
 use std::str::FromStr;
 
+use config::ConfigCommand;
+
+pub mod config;
+
 #[derive(Debug)]
 pub struct SetCommand {
     pub key: String,
@@ -18,15 +22,7 @@ pub struct EchoCommand {
     pub echo: String,
 }
 
-#[derive(Debug)]
-pub enum ConfigCommandAction {
-    Get(String),
-}
 
-#[derive(Debug)]
-pub struct ConfigCommand {
-    pub action: ConfigCommandAction,
-}
 
 #[derive(Debug)]
 pub enum Command {
@@ -93,9 +89,7 @@ impl<'a> Command {
             }),
             "info" => Command::Info,
             "replconf" => Command::Replconf,
-            "config" => Command::Config(ConfigCommand {
-                action: ConfigCommandAction::Get(main_statements[2].to_owned()),
-            }),
+            "config" => Command::Config(ConfigCommand::from_statements(&main_statements[1..])),
             _ => Self::Unrecognized,
         })
     }
