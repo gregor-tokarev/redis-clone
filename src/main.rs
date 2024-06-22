@@ -47,6 +47,8 @@ async fn main() {
         .await
         .expect("Port already in use");
 
+    initial_greeting(args.clone());
+
     loop {
         let context_clone = context.clone();
         let stream = listener.accept().await;
@@ -74,4 +76,26 @@ async fn main() {
             }
         }
     }
+}
+
+fn initial_greeting(args: Args) {
+    println!(r###"
+                _._
+           _.-``__ ''-._
+      _.-``    `.  `_.  ''-._           
+  .-`` .-```.  ```\/    _.,_ ''-._
+ (    '      ,       .-`  | `,    )    Hi there!
+ |`-._`-...-` __...-.``-._|'` _.-'|    I implement redis  
+ |    `-._   `._    /     _.-'    |    My github: https://github.com/gregor-tokarev 
+  `-._    `-._  `-./  _.-'    _.-'     
+ |`-._`-._    `-.__.-'    _.-'_.-'|    Port: {}
+ |    `-._`-._        _.-'_.-'    | 
+  `-._    `-._`-.__.-'_.-'    _.-'
+ |`-._`-._    `-.__.-'    _.-'_.-'|
+ |    `-._`-._        _.-'_.-'    |
+  `-._    `-._`-.__.-'_.-'    _.-'
+      `-._    `-.__.-'    _.-'
+          `-._        _.-'
+              `-.__.-'
+             "###, args.port);
 }
