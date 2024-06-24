@@ -12,7 +12,6 @@ pub async fn exec_command(socket: &mut TcpStream, context: &CommandContext, _com
         return;
     }
 
+    socket.write_all(build_array(vec![]).as_bytes()).await.unwrap();
     transaction.active = false;
-
-    socket.write_all(b"+OK\r\n").await.unwrap();
 }
