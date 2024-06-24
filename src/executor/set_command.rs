@@ -1,3 +1,5 @@
+use std::isize;
+
 use crate::{
     command_context::CommandContext, command_router::SetCommand, storage::{Item}
 };
@@ -10,9 +12,14 @@ pub async fn set_command(socket: &mut TcpStream, context: &CommandContext, comma
         .expire_after
         .map(|expire| Duration::from_millis(expire.parse().unwrap()));
 
+    let value = match command.value.parse::<isize>() {
+        Ok(num) => Item::Numeric(num),
+        Err(_) => Item::SimpleString(command.value)
+    };
+
     storage.set(
         command.key.to_owned(),
-        Item::SimpleString(command.value.to_owned()),
+        value,
         duration,
     ).await;
 

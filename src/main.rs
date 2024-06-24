@@ -26,6 +26,7 @@ async fn main() {
 
     let mut rdb = RDB::new(args.clone());
     let dump = rdb.start_sync().await.unwrap();
+    // println!("{dump:?}");
 
     let context = Arc::new(CommandContext::new(
         Replication::new(args.clone()),

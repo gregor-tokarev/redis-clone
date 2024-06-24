@@ -24,7 +24,13 @@ pub struct EchoCommand {
 
 #[derive(Debug)]
 pub struct KeysCommand {
-    pub pattern: String
+    pub pattern: String,
+}
+
+#[derive(Debug)]
+pub struct IncrCommand {
+    pub key: String,
+    pub step: isize,
 }
 
 #[derive(Debug)]
@@ -35,6 +41,7 @@ pub enum Command {
     Get(GetCommand),
     Replconf,
     Info,
+    Incr(IncrCommand),
     Config(ConfigCommand),
     Keys(KeysCommand),
     Unrecognized,
@@ -94,17 +101,17 @@ impl<'a> Command {
             "info" => Command::Info,
             "replconf" => Command::Replconf,
             "config" => Command::Config(ConfigCommand::from_statements(&main_statements[1..])),
+            "incr" => Command::Incr(IncrCommand {
+                key: main_statements[1].to_owned(),
+                step: match main_statements.get(2) {
+                    Some(incr) => incr.parse().unwrap(),
+                    None => 1,
+                },
+            }),
             "keys" => Command::Keys(KeysCommand {
-                pattern: main_statements[1].to_owned()
+                pattern: main_statements[1].to_owned(),
             }),
             _ => Self::Unrecognized,
         })
-    }
-
-    fn length_statment(statment: &str) -> Result<isize, ParsingError> {
-        match statment[1..].parse::<isize>() {
-            Ok(num) => Ok(num),
-            Err(_e) => Err(ParsingError),
-        }
     }
 }

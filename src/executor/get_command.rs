@@ -8,6 +8,7 @@ pub async fn get_command(socket: &mut TcpStream, context: &CommandContext, comma
 
     match value {
         Some(v) => {
+            println!("{v:?}");
             let resp = v.build_response_string();
 
             socket.write_all(resp.as_bytes()).await.unwrap();

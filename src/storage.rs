@@ -6,11 +6,12 @@ use std::{
 
 use tokio::{sync::Mutex, time::Instant};
 
-use crate::executor;
+use crate::{executor, resp_utils::build_bulk};
 
 #[derive(Debug, Clone)]
 pub enum Item {
     SimpleString(String),
+    Numeric(isize),
     BulkString(String),
     Arr(Vec<Item>),
     None,
@@ -26,6 +27,7 @@ pub struct Storage {
 }
 impl Storage {
     pub fn new(dump: (StorageState, StorageExpire)) -> Self {
+        println!("{:?}", dump.0);
         Self {
             state: Arc::new(Mutex::new(dump.0)),
             expire_list: Arc::new(Mutex::new(dump.1)),
@@ -39,7 +41,10 @@ impl Storage {
             let now = self.now();
             let expire_at = now + expr_after;
 
-            self.expire_list.lock().await.insert(key, expire_at.as_millis());
+            self.expire_list
+                .lock()
+                .await
+                .insert(key, expire_at.as_millis());
         }
     }
 
@@ -55,14 +60,14 @@ impl Storage {
         let mut state = self.state.lock().await;
         let mut expire_list = self.expire_list.lock().await;
 
+        println!("{:?}", state);
         if let Some(expire_time) = expire_list.get(key) {
-            println!("{:?} - {:?}", Instant::now(), expire_time);
             if self.now().as_millis() >= *expire_time {
                 state.remove(key);
                 expire_list.remove(key);
                 return None;
             }
-        }
+        };
 
         state.get(key).cloned()
     }
@@ -80,7 +85,7 @@ impl Storage {
         {
             let expire_list = self.expire_list.lock().await;
             for (key, value) in expire_list.iter() {
-                if current_time <= *value {
+                if current_time >= *value {
                     keys.push(key.clone());
                 }
             }
@@ -102,7 +107,8 @@ impl Storage {
 impl Item {
     pub fn build_response_string(&self) -> String {
         match self {
-            Self::SimpleString(s) => format!("${}\r\n{}\r\n", s.len(), s),
+            Self::SimpleString(s) => build_bulk(s.to_owned()),
+            Self::Numeric(n) => format!(":{}\r\n", n),
             _ => String::new(),
         }
     }
