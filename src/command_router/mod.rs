@@ -5,14 +5,14 @@ use config::ConfigCommand;
 
 pub mod config;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct SetCommand {
     pub key: String,
     pub value: String,
     pub expire_after: Option<String>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct GetCommand {
     pub key: String,
 }
@@ -27,7 +27,7 @@ pub struct KeysCommand {
     pub pattern: String,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct IncrCommand {
     pub key: String,
     pub step: isize,

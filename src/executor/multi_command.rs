@@ -1,9 +1,11 @@
-use crate::{command_context::CommandContext, command_router::{Command, EchoCommand, KeysCommand}, resp_utils::{build_array, build_bulk}, multi_exec};
+use crate::{command_context::CommandContext, command_router::{Command, EchoCommand, KeysCommand}, resp_utils::{build_array, build_bulk}, transaction};
 use tokio::{io::AsyncWriteExt, net::TcpStream};
 
 pub async fn multi_command(socket: &mut TcpStream, context: &CommandContext, _command: Command) {
+    println!("Start multi command");
     let mut transaction = context.multi_exec.lock().await;
     transaction.active = true;
+    println!("{}", transaction.active);
 
     socket.write_all(b"+OK\r\n").await.unwrap()
 }

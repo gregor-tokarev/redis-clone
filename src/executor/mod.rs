@@ -16,18 +16,18 @@ use tokio::io::AsyncWriteExt;
 use tokio::net::TcpStream;
 
 mod echo_command;
-mod get_command;
+pub mod get_command;
 mod info_command;
 mod ping_command;
-mod set_command;
-mod incr_command;
+pub mod set_command;
+pub mod incr_command;
 mod replconf_command;
 mod config_command;
 mod keys_command;
 mod multi_command;
 mod exec_command;
 
-pub async fn execute_command(command: Command, socket: &mut TcpStream, context: &CommandContext) {
+pub async fn execute_command<'a, 'b>(command: Command, socket: &'a mut TcpStream, context: &'b CommandContext) {
     match command {
         Command::Ping => ping_command(socket, context, command).await,
         Command::Echo(cmd) => echo_command(socket, context, cmd).await,

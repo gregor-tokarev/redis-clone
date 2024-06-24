@@ -5,7 +5,7 @@ use command_router::Command;
 use executor::execute_command;
 use rdb::RDB;
 use replication::Replication;
-use multi_exec::MultiexecContainer;
+use transaction::MultiexecContainer;
 use std::sync::Arc;
 use storage::Storage;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
@@ -20,7 +20,7 @@ mod replication;
 mod resp_utils;
 mod storage;
 mod tcp_request;
-mod multi_exec;
+mod transaction;
 
 #[tokio::main]
 async fn main() {
@@ -36,17 +36,19 @@ async fn main() {
         Storage::new(dump),
         transaction_container,
         args.clone(),
-    ));
+    )).clone();
 
-    context.replication_info.lock().await.connect_master().await;
-
-    let stor = context.clone();
+    // Async agents
+    let context_clone_expire = context.clone();
     tokio::spawn(async move {
         loop {
-            stor.storage.lock().await.tick().await;
+            context_clone_expire.storage.lock().await.tick().await;
             tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
         }
     });
+    // End of async agents
+
+    context.replication_info.lock().await.connect_master().await;
 
     let listener = TcpListener::bind(format!("127.0.0.1:{}", args.port))
         .await
