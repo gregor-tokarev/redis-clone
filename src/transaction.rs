@@ -1,10 +1,3 @@
-
-
-
-
-
-
-
 use crate::command_context::CommandContext;
 use crate::command_router::Command;
 use crate::executor::get_command::get_command_action;
@@ -41,7 +34,9 @@ impl TransactionContainer {
                 Command::Incr(cmd) => {
                     match incr_command_action(context, cmd.clone()).await {
                         Some(val) => resp.push(val.build_response_string()),
-                        None => {}
+                        None => {
+                            resp.push("-ERR value is not an integer or out of range\r\n".to_owned())
+                        }
                     };
                 },
                 Command::Get(cmd) => {
