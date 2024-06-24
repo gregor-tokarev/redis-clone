@@ -2,6 +2,7 @@ use crate::command_context::CommandContext;
 
 use crate::Command;
 use config_command::config_command;
+use discard_command::discard_command;
 use echo_command::echo_command;
 use exec_command::exec_command;
 use get_command::get_command;
@@ -26,6 +27,7 @@ mod config_command;
 mod keys_command;
 mod multi_command;
 mod exec_command;
+mod discard_command;
 
 pub async fn execute_command<'a, 'b>(command: Command, socket: &'a mut TcpStream, context: &'b CommandContext) {
     match command {
@@ -40,6 +42,7 @@ pub async fn execute_command<'a, 'b>(command: Command, socket: &'a mut TcpStream
         Command::Incr(cmd) => incr_command(socket, context, cmd).await,
         Command::Multi => multi_command(socket, context, command).await,
         Command::Exec => exec_command(socket, context, command).await,
+        Command::Discard => discard_command(socket, context, command).await,
         Command::Unrecognized => {
             println!("Unrecognized command");
             socket.write_all(b"+OK\r\n").await.unwrap();

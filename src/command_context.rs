@@ -5,7 +5,7 @@ use crate::{args::Args, replication::Replication, storage::Storage, transaction:
 pub(crate) struct CommandContext {
     pub replication_info: Mutex<Replication>,
     pub storage: Mutex<Storage>,
-    pub multi_exec: Mutex<TransactionContainer>,
+    pub transaction: Mutex<TransactionContainer>,
     pub args: Args,
 }
 
@@ -15,7 +15,7 @@ impl CommandContext {
         Self {
             replication_info: Mutex::new(replication),
             storage: Mutex::new(storage),
-            multi_exec: Mutex::new(transaction_container),
+            transaction: Mutex::new(transaction_container),
             args
         }
     }

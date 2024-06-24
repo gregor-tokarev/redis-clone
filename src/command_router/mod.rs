@@ -46,6 +46,7 @@ pub enum Command {
     Keys(KeysCommand),
     Multi,
     Exec,
+    Discard,
     Unrecognized,
 }
 
@@ -115,6 +116,7 @@ impl<'a> Command {
             }),
             "multi" => Command::Multi,
             "exec" => Command::Exec,
+            "discard" => Command::Discard,
             _ => Self::Unrecognized,
         })
     }

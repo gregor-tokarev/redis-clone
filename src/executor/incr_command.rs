@@ -9,7 +9,7 @@ use crate::{
 use tokio::{io::AsyncWriteExt, net::TcpStream};
 
 pub async fn incr_command(socket: &mut TcpStream, context: &CommandContext, command: IncrCommand) {
-    let mut transaction = context.multi_exec.lock().await;
+    let mut transaction = context.transaction.lock().await;
     if transaction.active {
         transaction.store_action(Command::Incr(command));
 

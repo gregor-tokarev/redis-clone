@@ -54,6 +54,11 @@ impl TransactionContainer {
         resp
     }
 
+    pub(super) fn discard(&mut self) {
+        self.active = false;
+        self.execution_queue.clear();
+    }
+
     // pub(super) async fn has_key_in_transaction(&self, key: String) -> bool {
     //     let mut has_key = false;
     //

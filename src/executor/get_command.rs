@@ -7,7 +7,7 @@ use crate::{
 use tokio::{io::AsyncWriteExt, net::TcpStream};
 
 pub async fn get_command(socket: &mut TcpStream, context: &CommandContext, command: GetCommand) {
-    let mut transaction = context.multi_exec.lock().await;
+    let mut transaction = context.transaction.lock().await;
     if transaction.active {
         transaction.store_action(Command::Get(command.clone()));
 
