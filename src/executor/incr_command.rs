@@ -1,12 +1,12 @@
-use std::{fmt::Error, isize};
+
 
 use crate::{
     command_context::CommandContext,
-    command_router::{Command, IncrCommand, SetCommand},
+    command_router::{Command, IncrCommand},
     storage::Item,
 };
-use futures::task::ArcWake;
-use tokio::{io::AsyncWriteExt, net::TcpStream, time::Duration};
+
+use tokio::{io::AsyncWriteExt, net::TcpStream};
 
 pub async fn incr_command(socket: &mut TcpStream, context: &CommandContext, command: IncrCommand) {
     let mut transaction = context.multi_exec.lock().await;
@@ -41,15 +41,15 @@ pub(crate) async fn incr_command_action(
                 let value = Item::Numeric(n + command.step);
                 storage.set(command.key, value.clone(), None).await;
 
-                return Some(value);
+                Some(value)
             }
-            _ => return None,
+            _ => None,
         },
         None => {
             let value = Item::Numeric(command.step);
             storage.set(command.key, value.clone(), None).await;
 
-            return Some(value);
+            Some(value)
         }
-    };
+    }
 }

@@ -1,4 +1,4 @@
-use crate::{command_context::CommandContext, command_router::{EchoCommand, KeysCommand}, resp_utils::{build_array, build_bulk}};
+use crate::{command_context::CommandContext, command_router::{KeysCommand}, resp_utils::{build_array, build_bulk}};
 use tokio::{io::AsyncWriteExt, net::TcpStream};
 
 pub async fn keys_command(socket: &mut TcpStream, context: &CommandContext, command: KeysCommand) {

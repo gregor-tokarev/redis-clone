@@ -1,17 +1,14 @@
 use std::{
     char,
     collections::HashMap,
-    fmt::write,
-    hash::Hash,
-    time::{Duration, SystemTime, UNIX_EPOCH},
+    time::{Duration},
     u64,
 };
 
-use bytes::buf;
+
 use tokio::{
     fs,
-    io::{self, AsyncReadExt, AsyncSeek, AsyncSeekExt, AsyncWriteExt, BufReader},
-    time::Instant,
+    io::{AsyncReadExt, BufReader},
 };
 
 use crate::{
@@ -115,7 +112,7 @@ impl RDB {
                     None
                 };
 
-                if let Some(_) = expire {
+                if expire.is_some() {
                     let _value_type = iter.next().unwrap();
                 }
 

@@ -4,9 +4,9 @@ use std::{
     time::{Duration, SystemTime, UNIX_EPOCH},
 };
 
-use tokio::{sync::Mutex, time::Instant};
+use tokio::{sync::Mutex};
 
-use crate::{executor, resp_utils::build_bulk};
+use crate::{resp_utils::build_bulk};
 
 #[derive(Debug, Clone)]
 pub enum Item {
@@ -106,7 +106,6 @@ impl Item {
         match self {
             Self::SimpleString(s) => build_bulk(s.to_owned()),
             Self::Numeric(n) => format!(":{}\r\n", n),
-            _ => String::new(),
         }
     }
 }
