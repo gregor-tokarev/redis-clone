@@ -77,7 +77,7 @@ impl RDB {
         if let Some(ref mut file) = self.file {
             println!("Found dump file, loading...");
             let mut buffer = Vec::new();
-            //
+
             let mut reader = BufReader::new(file);
             reader.read_to_end(&mut buffer).await?;
 

@@ -1,11 +1,24 @@
 use std::isize;
 
 use crate::{
-    command_context::CommandContext, command_router::SetCommand, storage::{Item}
+    command_context::CommandContext, command_router::SetCommand, multi_exec, storage::Item,
 };
 use tokio::{io::AsyncWriteExt, net::TcpStream, time::Duration};
 
 pub async fn set_command(socket: &mut TcpStream, context: &CommandContext, command: SetCommand) {
+    let mut transaction = context.multi_exec.lock().await;
+    if transaction.active {
+        transaction.store_action(Box::new(())).await;
+        socket.write_all(b"+QUEUED\r\n").await.unwrap();
+        return
+    };
+
+    action(context, command).await;
+
+    socket.write_all(b"+OK\r\n").await.unwrap();
+}
+
+async fn action(context: &CommandContext, command: SetCommand) {
     let mut storage = context.storage.lock().await;
 
     let duration = command
@@ -14,14 +27,8 @@ pub async fn set_command(socket: &mut TcpStream, context: &CommandContext, comma
 
     let value = match command.value.parse::<isize>() {
         Ok(num) => Item::Numeric(num),
-        Err(_) => Item::SimpleString(command.value)
+        Err(_) => Item::SimpleString(command.value),
     };
 
-    storage.set(
-        command.key.to_owned(),
-        value,
-        duration,
-    ).await;
-
-    socket.write_all(b"+OK\r\n").await.unwrap();
+    storage.set(command.key.to_owned(), value, duration).await;
 }

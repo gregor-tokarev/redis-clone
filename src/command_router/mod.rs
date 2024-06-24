@@ -44,6 +44,8 @@ pub enum Command {
     Incr(IncrCommand),
     Config(ConfigCommand),
     Keys(KeysCommand),
+    Multi,
+    Exec,
     Unrecognized,
 }
 
@@ -111,6 +113,8 @@ impl<'a> Command {
             "keys" => Command::Keys(KeysCommand {
                 pattern: main_statements[1].to_owned(),
             }),
+            "multi" => Command::Multi,
+            "exec" => Command::Exec,
             _ => Self::Unrecognized,
         })
     }

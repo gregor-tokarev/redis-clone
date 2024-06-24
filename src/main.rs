@@ -5,6 +5,7 @@ use command_router::Command;
 use executor::execute_command;
 use rdb::RDB;
 use replication::Replication;
+use multi_exec::MultiexecContainer;
 use std::sync::Arc;
 use storage::Storage;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
@@ -19,6 +20,7 @@ mod replication;
 mod resp_utils;
 mod storage;
 mod tcp_request;
+mod multi_exec;
 
 #[tokio::main]
 async fn main() {
@@ -26,11 +28,13 @@ async fn main() {
 
     let mut rdb = RDB::new(args.clone());
     let dump = rdb.start_sync().await.unwrap();
-    // println!("{dump:?}");
+
+    let transaction_container = MultiexecContainer::new();
 
     let context = Arc::new(CommandContext::new(
         Replication::new(args.clone()),
         Storage::new(dump),
+        transaction_container,
         args.clone(),
     ));
 
