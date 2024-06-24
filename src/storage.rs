@@ -12,9 +12,8 @@ use crate::{executor, resp_utils::build_bulk};
 pub enum Item {
     SimpleString(String),
     Numeric(isize),
-    BulkString(String),
-    Arr(Vec<Item>),
-    None,
+    // Arr(Vec<Item>),
+    // None,
 }
 
 pub type StorageState = HashMap<String, Item>;
@@ -27,7 +26,6 @@ pub struct Storage {
 }
 impl Storage {
     pub fn new(dump: (StorageState, StorageExpire)) -> Self {
-        println!("{:?}", dump.0);
         Self {
             state: Arc::new(Mutex::new(dump.0)),
             expire_list: Arc::new(Mutex::new(dump.1)),
@@ -60,7 +58,6 @@ impl Storage {
         let mut state = self.state.lock().await;
         let mut expire_list = self.expire_list.lock().await;
 
-        println!("{:?}", state);
         if let Some(expire_time) = expire_list.get(key) {
             if self.now().as_millis() >= *expire_time {
                 state.remove(key);

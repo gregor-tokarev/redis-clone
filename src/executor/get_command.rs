@@ -1,4 +1,4 @@
-use crate::{command_context::CommandContext, command_router::GetCommand};
+use crate::{command_context::CommandContext, command_router::GetCommand, resp_utils::build_bulk, storage::Item};
 use tokio::{io::AsyncWriteExt, net::TcpStream};
 
 pub async fn get_command(socket: &mut TcpStream, context: &CommandContext, command: GetCommand) {
@@ -8,10 +8,11 @@ pub async fn get_command(socket: &mut TcpStream, context: &CommandContext, comma
 
     match value {
         Some(v) => {
-            println!("{v:?}");
-            let resp = v.build_response_string();
-
-            socket.write_all(resp.as_bytes()).await.unwrap();
+            let resp = match v {
+                Item::Numeric(n) => n.to_string(),
+                Item::SimpleString(s) => s
+            };
+            socket.write_all(build_bulk(resp).as_bytes()).await.unwrap();
         }
         None => {
             socket.write_all(b"$-1\r\n").await.unwrap();
