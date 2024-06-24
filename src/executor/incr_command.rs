@@ -23,7 +23,7 @@ pub async fn incr_command(socket: &mut TcpStream, context: &CommandContext, comm
                         .unwrap();
                 }
                 _ => {
-                    socket.write_all(b"+OK\r\n").await.unwrap();
+                    socket.write_all(b"-ERR value is not an integer or out of range\r\n").await.unwrap();
                 }
             }
             // socket.write_all(val.build_response_string().as_bytes()).await.unwrap();

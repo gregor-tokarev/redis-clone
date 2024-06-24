@@ -12,6 +12,7 @@ pub async fn get_command(socket: &mut TcpStream, context: &CommandContext, comma
                 Item::Numeric(n) => n.to_string(),
                 Item::SimpleString(s) => s
             };
+
             socket.write_all(build_bulk(resp).as_bytes()).await.unwrap();
         }
         None => {
