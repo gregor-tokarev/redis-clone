@@ -11,7 +11,7 @@ pub async fn discard_command(socket: &mut TcpStream, context: &CommandContext, _
         return;
     }
 
-    transaction.discard();
+    transaction.clear();
     
 
     socket.write_all(b"+OK\r\n").await.unwrap();

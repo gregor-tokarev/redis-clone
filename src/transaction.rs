@@ -22,7 +22,7 @@ impl TransactionContainer {
         self.execution_queue.push(command)
     }
 
-    pub(super) async fn exec_commands(&self, context: &CommandContext) -> Vec<String> {
+    pub(super) async fn exec_commands(&mut self, context: &CommandContext) -> Vec<String> {
         let mut resp = vec![];
 
         for cmd in &self.execution_queue {
@@ -46,10 +46,12 @@ impl TransactionContainer {
             }
         };
 
+        self.clear();
+
         resp
     }
 
-    pub(super) fn discard(&mut self) {
+    pub(super) fn clear(&mut self) {
         self.active = false;
         self.execution_queue.clear();
     }
