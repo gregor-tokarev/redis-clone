@@ -9,15 +9,11 @@ use tokio::{io::AsyncWriteExt, net::TcpStream};
 pub async fn get_command(socket: &mut TcpStream, context: &CommandContext, command: GetCommand) {
     let mut transaction = context.multi_exec.lock().await;
     if transaction.active {
-        if transaction.has_key_in_transaction(command.clone().key).await {
-            transaction.store_action(Command::Get(command.clone()));
-            socket
-                .write_all(build_bulk("QUEUED".to_owned()).as_bytes())
-                .await
-                .unwrap();
-        } else {
-            socket.write_all(b"$-1\r\n").await.unwrap();
-        };
+        transaction.store_action(Command::Get(command.clone()));
+        socket
+            .write_all(build_bulk("QUEUED".to_owned()).as_bytes())
+            .await
+            .unwrap();
 
         return;
     }
