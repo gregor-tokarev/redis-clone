@@ -41,8 +41,8 @@ async fn main() {
     let context_clone_expire = context.clone();
     tokio::spawn(async move {
         loop {
-            context_clone_expire.storage.lock().await.tick().await;
             tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
+            context_clone_expire.storage.lock().await.tick().await;
         }
     });
     // End of async agents
