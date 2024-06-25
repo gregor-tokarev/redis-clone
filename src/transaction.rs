@@ -38,13 +38,11 @@ impl TransactionContainer {
                             resp.push("-ERR value is not an integer or out of range\r\n".to_owned())
                         }
                     };
-                },
-                Command::Get(cmd) => {
-                    resp.push(get_command_action(context, cmd.clone()).await)
                 }
+                Command::Get(cmd) => resp.push(get_command_action(context, cmd.clone()).await),
                 _ => {}
             }
-        };
+        }
 
         self.clear();
 

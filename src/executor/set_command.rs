@@ -1,16 +1,24 @@
 use std::isize;
 
 use crate::{
-    command_context::CommandContext, command_router::{Command, SetCommand}, storage::item::Item, transaction::{TransactionContainer},
+    command_context::CommandContext,
+    command_router::{Command, SetCommand},
+    storage::item::Item,
+    transaction::TransactionContainer,
 };
 use tokio::{io::AsyncWriteExt, net::TcpStream, time::Duration};
 
-pub async fn set_command(socket: &mut TcpStream, context: &CommandContext, command: SetCommand, transaction: &mut TransactionContainer) {
+pub async fn set_command(
+    socket: &mut TcpStream,
+    context: &CommandContext,
+    command: SetCommand,
+    transaction: &mut TransactionContainer,
+) {
     if transaction.active {
         transaction.store_action(Command::Set(command));
 
         socket.write_all(b"+QUEUED\r\n").await.unwrap();
-        return
+        return;
     };
 
     set_command_action(context, command).await;

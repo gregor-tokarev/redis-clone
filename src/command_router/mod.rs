@@ -1,5 +1,5 @@
 use core::fmt;
-use std::collections::{btree_map::Keys, HashMap};
+use std::collections::HashMap;
 
 use config::ConfigCommand;
 
@@ -146,9 +146,9 @@ impl<'a> Command {
                 let mut data_value: Option<String> = None;
 
                 for itm in iter {
-                    if data_key == None && data_value == None {
+                    if data_key.is_none() && data_value.is_none() {
                         data_key = Some(itm.to_owned());
-                    } else if data_key != None && data_value == None {
+                    } else if data_key.is_some() && data_value.is_none() {
                         data_value = Some(itm.to_owned());
 
                         if let (Some(key), Some(value)) = (data_key.clone(), data_value.clone()) {

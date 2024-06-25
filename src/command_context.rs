@@ -8,13 +8,12 @@ pub(crate) struct CommandContext {
     pub args: Args,
 }
 
-
 impl CommandContext {
     pub fn new(replication: Replication, storage: Storage, args: Args) -> Self {
         Self {
             replication_info: Mutex::new(replication),
             storage: Mutex::new(storage),
-            args
+            args,
         }
     }
 }

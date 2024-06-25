@@ -9,7 +9,7 @@ pub(crate) struct Replication {
     pub master_id: Option<String>,
     pub master_host: Option<String>,
     pub master_port: Option<isize>,
-    pub args: Args
+    pub args: Args,
 }
 
 impl<'a> Replication {

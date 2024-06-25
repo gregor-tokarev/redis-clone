@@ -1,16 +1,33 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, isize};
 
 use crate::resp_utils::build_bulk;
 
 #[derive(Debug, Clone)]
 pub struct StreamDataEntry {
-   pub id: String,
-   pub data: HashMap<String, String>
+    pub id: String,
+    pub data: HashMap<String, String>,
+}
+
+pub fn split_id(id: String) -> Result<(isize, isize), String> {
+    let mut split = id.split('-');
+
+    let timestamp = split
+        .next()
+        .ok_or_else(|| String::from("parse error"))?
+        .parse::<isize>()
+        .map_err(|_| String::from("parse error"))?;
+    let count = split
+        .next()
+        .ok_or_else(|| String::from("parse error"))?
+        .parse::<isize>()
+        .map_err(|_| String::from("parse error"))?;
+
+    Ok((timestamp, count))
 }
 
 #[derive(Debug, Clone)]
 pub struct StreamData {
-    pub value: Vec<StreamDataEntry>
+    pub value: Vec<StreamDataEntry>,
 }
 
 #[derive(Debug, Clone)]
@@ -27,7 +44,7 @@ impl Item {
         match self {
             Self::SimpleString(s) => build_bulk(s.to_owned()),
             Self::Numeric(n) => format!(":{}\r\n", n),
-            _ =>  "stream".to_owned()
+            _ => "stream".to_owned(),
         }
     }
 
@@ -35,7 +52,7 @@ impl Item {
         match self {
             Self::SimpleString(_) => "string".to_owned(),
             Self::Numeric(_) => "number".to_owned(),
-            Self::Stream(_) => "stream".to_owned()
+            Self::Stream(_) => "stream".to_owned(),
         }
     }
 }

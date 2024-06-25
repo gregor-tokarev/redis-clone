@@ -7,8 +7,6 @@ use std::{
 use item::{Item, StreamDataEntry};
 use tokio::sync::Mutex;
 
-use crate::resp_utils::build_bulk;
-
 pub mod item;
 
 pub type StorageState = HashMap<String, Item>;
@@ -43,18 +41,21 @@ impl Storage {
 
     pub async fn xadd(&mut self, key: String, id: String, data: HashMap<String, String>) {
         let item = self.get(key.as_str()).await;
+        let mut state = self.state.lock().await;
 
+        println!("{:?}", state.clone());
         match item {
             Some(itm) => {
                 if let Item::Stream(mut stream) = itm {
                     stream.value.push(item::StreamDataEntry {
                         id: id.clone(),
                         data,
-                    })
+                    });
+
+                    state.insert(key, Item::Stream(stream));
                 };
             }
             None => {
-                let mut state = self.state.lock().await;
 
                 state.insert(
                     key,
@@ -64,6 +65,22 @@ impl Storage {
                 );
             }
         };
+    }
+
+    pub async fn get_top_stream_item(&self, key: String) -> Option<StreamDataEntry> {
+        let item = self.get(key.as_str()).await;
+
+        match item {
+            Some(itm) => {
+                if let Item::Stream(stream) = itm {
+                    let entry = stream.clone().value.last().unwrap().clone();
+                    Some(entry)
+                } else {
+                    None
+                }
+            }
+            None => None,
+        }
     }
 
     fn now(&self) -> Duration {

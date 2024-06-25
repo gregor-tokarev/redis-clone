@@ -14,5 +14,5 @@ pub struct Args {
     pub dir: String,
 
     #[arg(long, default_value_t=String::from("dump.rdb"))]
-    pub dbfilename: String
+    pub dbfilename: String,
 }

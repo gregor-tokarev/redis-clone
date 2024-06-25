@@ -9,8 +9,8 @@ use std::sync::Arc;
 use storage::Storage;
 use tokio::io::AsyncReadExt;
 use tokio::net::TcpListener;
-use transaction::TransactionContainer;
 use tokio::sync::Mutex;
+use transaction::TransactionContainer;
 
 mod args;
 mod command_context;

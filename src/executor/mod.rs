@@ -1,6 +1,6 @@
 use crate::command_context::CommandContext;
 
-use crate::transaction::{TransactionContainer};
+use crate::transaction::TransactionContainer;
 use crate::Command;
 use config_command::config_command;
 use discard_command::discard_command;
@@ -14,29 +14,34 @@ use multi_command::multi_command;
 use ping_command::ping_command;
 use replconf_command::replconf_command;
 use set_command::set_command;
+use std::sync::Arc;
 use tokio::io::AsyncWriteExt;
 use tokio::net::TcpStream;
 use tokio::sync::Mutex;
 use type_command::type_command;
 use xadd_command::xadd_command;
-use std::sync::Arc;
 
-mod echo_command;
-pub mod get_command;
-mod info_command;
-mod ping_command;
-mod type_command;
-mod xadd_command;
-pub mod set_command;
-pub mod incr_command;
-mod replconf_command;
 mod config_command;
+mod discard_command;
+mod echo_command;
+mod exec_command;
+pub mod get_command;
+pub mod incr_command;
+mod info_command;
 mod keys_command;
 mod multi_command;
-mod exec_command;
-mod discard_command;
+mod ping_command;
+mod replconf_command;
+pub mod set_command;
+mod type_command;
+mod xadd_command;
 
-pub async fn execute_command(command: Command, socket: &mut TcpStream, context: &CommandContext, transaction: Arc<Mutex<TransactionContainer>>) {
+pub async fn execute_command(
+    command: Command,
+    socket: &mut TcpStream,
+    context: &CommandContext,
+    transaction: Arc<Mutex<TransactionContainer>>,
+) {
     let mut tx = transaction.lock().await;
 
     match command {
@@ -57,6 +62,6 @@ pub async fn execute_command(command: Command, socket: &mut TcpStream, context: 
         Command::Unrecognized => {
             println!("Unrecognized command");
             socket.write_all(b"+OK\r\n").await.unwrap();
-        },
+        }
     }
 }

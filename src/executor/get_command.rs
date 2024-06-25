@@ -1,5 +1,3 @@
-use std::fmt::format;
-
 use crate::{
     command_context::CommandContext,
     command_router::{Command, GetCommand},
