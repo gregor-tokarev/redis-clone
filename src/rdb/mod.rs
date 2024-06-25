@@ -7,7 +7,7 @@ use tokio::{
 
 use crate::{
     args::Args,
-    storage::{Item, StorageExpire, StorageState},
+    storage::{item::Item, StorageExpire, StorageState},
 };
 
 pub struct RDB {
@@ -150,21 +150,5 @@ impl RDB {
         } else {
             Ok((HashMap::new(), HashMap::new()))
         }
-
-        // println!("wanna write");
-        // if let Some(file) = &mut self.file {
-        //     println!("{:?}", bincode::serialize("REDIS0007")?);
-        //     println!("{:?}", b"REDIS0007");
-        //     file.write_all(&[52, 45, 44, 49, 53, 30, 30, 30, 37])
-        //         .await
-        //         .unwrap();
-        //
-        //     Ok(())
-        // } else {
-        //     Err(Box::new(std::io::Error::new(
-        //         std::io::ErrorKind::Other,
-        //         "File not available",
-        //     )))
-        // }
     }
 }

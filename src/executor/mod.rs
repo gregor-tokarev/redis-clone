@@ -1,6 +1,6 @@
 use crate::command_context::CommandContext;
 
-use crate::transaction::{self, TransactionContainer};
+use crate::transaction::{TransactionContainer};
 use crate::Command;
 use config_command::config_command;
 use discard_command::discard_command;

@@ -4,17 +4,12 @@ use std::{
     time::{Duration, SystemTime, UNIX_EPOCH},
 };
 
-use tokio::{sync::Mutex};
+use item::Item;
+use tokio::sync::Mutex;
 
-use crate::{resp_utils::build_bulk};
+use crate::resp_utils::build_bulk;
 
-#[derive(Debug, Clone)]
-pub enum Item {
-    SimpleString(String),
-    Numeric(isize),
-    // Arr(Vec<Item>),
-    // None,
-}
+pub mod item;
 
 pub type StorageState = HashMap<String, Item>;
 
@@ -97,15 +92,6 @@ impl Storage {
 
         for key in keys {
             self.remove(&key).await;
-        }
-    }
-}
-
-impl Item {
-    pub fn build_response_string(&self) -> String {
-        match self {
-            Self::SimpleString(s) => build_bulk(s.to_owned()),
-            Self::Numeric(n) => format!(":{}\r\n", n),
         }
     }
 }
