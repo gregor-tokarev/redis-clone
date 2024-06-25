@@ -1,12 +1,11 @@
 use crate::{
     command_context::CommandContext,
-    command_router::{Command},
-    resp_utils::{build_array},
+    command_router::Command,
+    resp_utils::build_array, transaction::{self, TransactionContainer},
 };
 use tokio::{io::AsyncWriteExt, net::TcpStream};
 
-pub async fn exec_command(socket: &mut TcpStream, context: &CommandContext, _command: Command) {
-    let mut transaction = context.transaction.lock().await;
+pub async fn exec_command(socket: &mut TcpStream, context: &CommandContext, _command: Command, transaction: &mut TransactionContainer) {
     if !transaction.active {
         socket.write_all(b"-ERR EXEC without MULTI\r\n").await.unwrap();
         return;

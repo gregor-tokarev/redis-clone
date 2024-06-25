@@ -5,11 +5,12 @@ use command_router::Command;
 use executor::execute_command;
 use rdb::RDB;
 use replication::Replication;
-use transaction::TransactionContainer;
 use std::sync::Arc;
 use storage::Storage;
-use tokio::io::{AsyncReadExt};
+use tokio::io::AsyncReadExt;
 use tokio::net::TcpListener;
+use transaction::TransactionContainer;
+use tokio::sync::Mutex;
 
 mod args;
 mod command_context;
@@ -29,14 +30,12 @@ async fn main() {
     let mut rdb = RDB::new(args.clone());
     let dump = rdb.start_sync().await.unwrap();
 
-    let transaction_container = TransactionContainer::new();
-
     let context = Arc::new(CommandContext::new(
         Replication::new(args.clone()),
         Storage::new(dump),
-        transaction_container,
         args.clone(),
-    )).clone();
+    ))
+    .clone();
 
     // Async agents
     let context_clone_expire = context.clone();
@@ -63,17 +62,23 @@ async fn main() {
         match stream {
             Ok((mut s, _)) => {
                 tokio::spawn(async move {
-                    let mut buffer = [0u8; 1024];
-                    while let Ok(bytes_read) = s.read(&mut buffer).await {
-                        if bytes_read == 0 {
-                            break;
-                        }
+                    let transaction_container = Arc::new(Mutex::new(TransactionContainer::new()));
 
-                        let command_str =
-                            String::from_utf8_lossy(&buffer[..bytes_read]).to_string();
+                    loop {
+                        let mut buffer = [0u8; 1024];
+                        let mut command_str = String::new();
 
+                        let bytes_read = s.read(&mut buffer).await.unwrap();
+
+                        command_str = format!(
+                            "{}{}",
+                            command_str,
+                            String::from_utf8_lossy(&buffer[..bytes_read])
+                        );
+
+                        let tx = transaction_container.clone();
                         if let Ok(com) = Command::new(&command_str) {
-                            execute_command(com, &mut s, &context_clone).await;
+                            execute_command(com, &mut s, &context_clone, tx).await;
                         }
                     }
                 });
@@ -86,7 +91,8 @@ async fn main() {
 }
 
 fn initial_greeting(args: Args) {
-    println!(r###"
+    println!(
+        r###"
                 _._
            _.-``__ ''-._
       _.-``    `.  `_.  ''-._           
@@ -104,5 +110,7 @@ fn initial_greeting(args: Args) {
       `-._    `-.__.-'    _.-'
           `-._        _.-'
               `-.__.-'
-             "###, args.port);
+             "###,
+        args.port
+    );
 }

@@ -3,13 +3,12 @@
 use crate::{
     command_context::CommandContext,
     command_router::{Command, IncrCommand},
-    storage::Item,
+    storage::Item, transaction::{self, TransactionContainer},
 };
 
 use tokio::{io::AsyncWriteExt, net::TcpStream};
 
-pub async fn incr_command(socket: &mut TcpStream, context: &CommandContext, command: IncrCommand) {
-    let mut transaction = context.transaction.lock().await;
+pub async fn incr_command(socket: &mut TcpStream, context: &CommandContext, command: IncrCommand, transaction: &mut TransactionContainer) {
     if transaction.active {
         transaction.store_action(Command::Incr(command));
 

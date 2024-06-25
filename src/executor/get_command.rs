@@ -2,12 +2,11 @@ use crate::{
     command_context::CommandContext,
     command_router::{Command, GetCommand},
     resp_utils::build_bulk,
-    storage::Item,
+    storage::Item, transaction::{self, TransactionContainer},
 };
 use tokio::{io::AsyncWriteExt, net::TcpStream};
 
-pub async fn get_command(socket: &mut TcpStream, context: &CommandContext, command: GetCommand) {
-    let mut transaction = context.transaction.lock().await;
+pub async fn get_command(socket: &mut TcpStream, context: &CommandContext, command: GetCommand, transaction: &mut TransactionContainer) {
     if transaction.active {
         transaction.store_action(Command::Get(command.clone()));
 
