@@ -22,13 +22,8 @@ pub async fn xadd_command(socket: &mut TcpStream, context: &CommandContext, comm
             .duration_since(UNIX_EPOCH)
             .unwrap()
             .as_millis() as isize,
-        // None => match last_entry.clone() {
-        //     Some(_) => SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis() as isize,
-        //     None => 1,
-        // },
     };
 
-    println!("{:?}", new_count_statement);
     let new_count = match new_count_statement {
         Some(t) => t,
         None => match last_entry.clone() {
@@ -54,7 +49,6 @@ pub async fn xadd_command(socket: &mut TcpStream, context: &CommandContext, comm
             }
         },
     };
-    println!("{:?}", new_count);
 
     if new_timestamp == 0 && new_count == 0 {
         socket
@@ -73,7 +67,6 @@ pub async fn xadd_command(socket: &mut TcpStream, context: &CommandContext, comm
             if last_timestamp > new_timestamp
                 || (last_timestamp == new_timestamp && last_count >= new_count)
             {
-                // println!("gach ya");
                 socket.write_all(b"-ERR The ID specified in XADD is equal or smaller than the target stream top item\r\n").await.unwrap();
                 return;
             }
