@@ -1,5 +1,5 @@
 use core::fmt;
-
+use std::collections::{btree_map::Keys, HashMap};
 
 use config::ConfigCommand;
 
@@ -38,7 +38,12 @@ pub struct TypeCommand {
     pub key: String,
 }
 
-
+#[derive(Debug, Clone)]
+pub struct XAddCommand {
+    pub key: String,
+    pub id: String,
+    pub data: HashMap<String, String>,
+}
 
 #[derive(Debug)]
 pub enum Command {
@@ -55,6 +60,7 @@ pub enum Command {
     Exec,
     Discard,
     Type(TypeCommand),
+    XAdd(XAddCommand),
     Unrecognized,
 }
 
@@ -126,8 +132,36 @@ impl<'a> Command {
             "exec" => Command::Exec,
             "discard" => Command::Discard,
             "type" => Command::Type(TypeCommand {
-                key: main_statements[1].to_owned()
+                key: main_statements[1].to_owned(),
             }),
+            "xadd" => {
+                let mut data: HashMap<String, String> = HashMap::new();
+
+                let mut iter = main_statements.into_iter().skip(1);
+
+                let key = iter.next().unwrap().to_owned();
+                let id = iter.next().unwrap().to_owned();
+
+                let mut data_key: Option<String> = None;
+                let mut data_value: Option<String> = None;
+
+                for itm in iter {
+                    if data_key == None && data_value == None {
+                        data_key = Some(itm.to_owned());
+                    } else if data_key != None && data_value == None {
+                        data_value = Some(itm.to_owned());
+
+                        if let (Some(key), Some(value)) = (data_key.clone(), data_value.clone()) {
+                            data.insert(key, value);
+
+                            data_key = None;
+                            data_value = None;
+                        }
+                    }
+                }
+
+                Command::XAdd(XAddCommand { key, id, data })
+            }
             _ => Self::Unrecognized,
         })
     }

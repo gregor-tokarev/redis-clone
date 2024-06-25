@@ -18,6 +18,7 @@ use tokio::io::AsyncWriteExt;
 use tokio::net::TcpStream;
 use tokio::sync::Mutex;
 use type_command::type_command;
+use xadd_command::xadd_command;
 use std::sync::Arc;
 
 mod echo_command;
@@ -25,6 +26,7 @@ pub mod get_command;
 mod info_command;
 mod ping_command;
 mod type_command;
+mod xadd_command;
 pub mod set_command;
 pub mod incr_command;
 mod replconf_command;
@@ -51,6 +53,7 @@ pub async fn execute_command(command: Command, socket: &mut TcpStream, context: 
         Command::Exec => exec_command(socket, context, command, &mut tx).await,
         Command::Discard => discard_command(socket, context, command, &mut tx).await,
         Command::Type(cmd) => type_command(socket, context, cmd).await,
+        Command::XAdd(cmd) => xadd_command(socket, context, cmd).await,
         Command::Unrecognized => {
             println!("Unrecognized command");
             socket.write_all(b"+OK\r\n").await.unwrap();

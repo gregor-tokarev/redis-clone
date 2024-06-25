@@ -1,12 +1,20 @@
+use std::fmt::format;
+
 use crate::{
     command_context::CommandContext,
     command_router::{Command, GetCommand},
     resp_utils::build_bulk,
-    storage::item::Item, transaction::{TransactionContainer},
+    storage::item::Item,
+    transaction::TransactionContainer,
 };
 use tokio::{io::AsyncWriteExt, net::TcpStream};
 
-pub async fn get_command(socket: &mut TcpStream, context: &CommandContext, command: GetCommand, transaction: &mut TransactionContainer) {
+pub async fn get_command(
+    socket: &mut TcpStream,
+    context: &CommandContext,
+    command: GetCommand,
+    transaction: &mut TransactionContainer,
+) {
     if transaction.active {
         transaction.store_action(Command::Get(command.clone()));
 
@@ -34,6 +42,7 @@ pub(crate) async fn get_command_action(context: &CommandContext, command: GetCom
             let resp = match v {
                 Item::Numeric(n) => n.to_string(),
                 Item::SimpleString(s) => s,
+                Item::Stream(_stream) => "".to_owned(),
             };
 
             build_bulk(resp)

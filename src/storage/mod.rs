@@ -4,7 +4,7 @@ use std::{
     time::{Duration, SystemTime, UNIX_EPOCH},
 };
 
-use item::Item;
+use item::{Item, StreamDataEntry};
 use tokio::sync::Mutex;
 
 use crate::resp_utils::build_bulk;
@@ -39,6 +39,31 @@ impl Storage {
                 .await
                 .insert(key, expire_at.as_millis());
         }
+    }
+
+    pub async fn xadd(&mut self, key: String, id: String, data: HashMap<String, String>) {
+        let item = self.get(key.as_str()).await;
+
+        match item {
+            Some(itm) => {
+                if let Item::Stream(mut stream) = itm {
+                    stream.value.push(item::StreamDataEntry {
+                        id: id.clone(),
+                        data,
+                    })
+                };
+            }
+            None => {
+                let mut state = self.state.lock().await;
+
+                state.insert(
+                    key,
+                    Item::Stream(item::StreamData {
+                        value: vec![StreamDataEntry { id, data }],
+                    }),
+                );
+            }
+        };
     }
 
     fn now(&self) -> Duration {
