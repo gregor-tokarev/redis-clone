@@ -1,6 +1,6 @@
 use std::{
     isize,
-    time::{Duration, SystemTime, UNIX_EPOCH},
+    time::{SystemTime, UNIX_EPOCH},
 };
 
 use crate::{
@@ -32,12 +32,10 @@ pub async fn xadd_command(socket: &mut TcpStream, context: &CommandContext, comm
 
                 if timestamp >= new_timestamp {
                     count + 1
+                } else if new_timestamp != 0 {
+                    0
                 } else {
-                    if new_timestamp != 0 {
-                        0
-                    } else {
-                        1
-                    }
+                    1
                 }
             }
             None => {

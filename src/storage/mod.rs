@@ -55,7 +55,6 @@ impl Storage {
                 };
             }
             None => {
-
                 state.insert(
                     key,
                     Item::Stream(item::StreamData {

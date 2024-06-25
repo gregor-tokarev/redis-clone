@@ -10,28 +10,27 @@ pub struct StreamDataEntry {
 
 impl StreamDataEntry {
     pub fn split_id(&self) -> Result<(isize, isize), String> {
-    let mut split = self.id.split('-');
+        let mut split = self.id.split('-');
 
-    let timestamp = split
-        .next()
-        .ok_or_else(|| String::from("parse error"))?
-        .parse::<isize>()
-        .map_err(|_| String::from("parse error"))?;
+        let timestamp = split
+            .next()
+            .ok_or_else(|| String::from("parse error"))?
+            .parse::<isize>()
+            .map_err(|_| String::from("parse error"))?;
 
-    let count = split
-        .next()
-        .ok_or_else(|| String::from("parse error"))?
-        .parse::<isize>()
-        .map_err(|_| String::from("parse error"))?;
-    
-    Ok((timestamp, count))
+        let count = split
+            .next()
+            .ok_or_else(|| String::from("parse error"))?
+            .parse::<isize>()
+            .map_err(|_| String::from("parse error"))?;
 
+        Ok((timestamp, count))
     }
 }
 
 pub fn split_id(id: String) -> Result<(Option<isize>, Option<isize>), String> {
-    if id.as_bytes() == b"*"{
-        return Ok((None, None))
+    if id.as_bytes() == b"*" {
+        return Ok((None, None));
     };
 
     let mut split = id.split('-');
