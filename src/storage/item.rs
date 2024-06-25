@@ -30,6 +30,10 @@ impl StreamDataEntry {
 }
 
 pub fn split_id(id: String) -> Result<(Option<isize>, Option<isize>), String> {
+    if id.as_bytes() == b"*"{
+        return Ok((None, None))
+    };
+
     let mut split = id.split('-');
 
     let timestamp = match split

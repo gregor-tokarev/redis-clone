@@ -1,3 +1,8 @@
+use std::{
+    isize,
+    time::{Duration, SystemTime, UNIX_EPOCH},
+};
+
 use crate::{
     command_context::CommandContext, command_router::XAddCommand, resp_utils::build_bulk,
     storage::item::split_id,
@@ -13,10 +18,14 @@ pub async fn xadd_command(socket: &mut TcpStream, context: &CommandContext, comm
 
     let new_timestamp = match new_timestamp_statment {
         Some(t) => t,
-        None => match last_entry.clone() {
-            Some(entry) => entry.split_id().unwrap().0 + 1,
-            None => 1,
-        },
+        None => SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_millis() as isize,
+        // None => match last_entry.clone() {
+        //     Some(_) => SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis() as isize,
+        //     None => 1,
+        // },
     };
 
     println!("{:?}", new_count_statement);
@@ -29,10 +38,20 @@ pub async fn xadd_command(socket: &mut TcpStream, context: &CommandContext, comm
                 if timestamp >= new_timestamp {
                     count + 1
                 } else {
-                    0
+                    if new_timestamp != 0 {
+                        0
+                    } else {
+                        1
+                    }
                 }
             }
-            None => 1,
+            None => {
+                if new_timestamp != 0 {
+                    0
+                } else {
+                    1
+                }
+            }
         },
     };
     println!("{:?}", new_count);
