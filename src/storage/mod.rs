@@ -43,7 +43,6 @@ impl Storage {
         let item = self.get(key.as_str()).await;
         let mut state = self.state.lock().await;
 
-        println!("{:?}", state.clone());
         match item {
             Some(itm) => {
                 if let Item::Stream(mut stream) = itm {

@@ -8,19 +8,49 @@ pub struct StreamDataEntry {
     pub data: HashMap<String, String>,
 }
 
-pub fn split_id(id: String) -> Result<(isize, isize), String> {
-    let mut split = id.split('-');
+impl StreamDataEntry {
+    pub fn split_id(&self) -> Result<(isize, isize), String> {
+    let mut split = self.id.split('-');
 
     let timestamp = split
         .next()
         .ok_or_else(|| String::from("parse error"))?
         .parse::<isize>()
         .map_err(|_| String::from("parse error"))?;
+
     let count = split
         .next()
         .ok_or_else(|| String::from("parse error"))?
         .parse::<isize>()
         .map_err(|_| String::from("parse error"))?;
+    
+    Ok((timestamp, count))
+
+    }
+}
+
+pub fn split_id(id: String) -> Result<(Option<isize>, Option<isize>), String> {
+    let mut split = id.split('-');
+
+    let timestamp = match split
+        .next()
+        .ok_or_else(|| String::from("parse error"))?
+        .parse::<isize>()
+        .map_err(|_| None::<isize>)
+    {
+        Ok(num) => Some(num),
+        Err(_) => None,
+    };
+
+    let count = match split
+        .next()
+        .ok_or_else(|| String::from("parse error"))?
+        .parse::<isize>()
+        .map_err(|_| None::<isize>)
+    {
+        Ok(num) => Some(num),
+        Err(_) => None,
+    };
 
     Ok((timestamp, count))
 }
