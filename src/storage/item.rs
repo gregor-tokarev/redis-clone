@@ -15,4 +15,11 @@ impl Item {
             Self::Numeric(n) => format!(":{}\r\n", n),
         }
     }
+
+    pub fn get_type_string(&self) -> String {
+        match self {
+            Self::SimpleString(_) => "string".to_owned(),
+            Self::Numeric(_) => "number".to_owned(),
+        }
+    }
 }

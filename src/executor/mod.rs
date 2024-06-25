@@ -17,12 +17,14 @@ use set_command::set_command;
 use tokio::io::AsyncWriteExt;
 use tokio::net::TcpStream;
 use tokio::sync::Mutex;
+use type_command::type_command;
 use std::sync::Arc;
 
 mod echo_command;
 pub mod get_command;
 mod info_command;
 mod ping_command;
+mod type_command;
 pub mod set_command;
 pub mod incr_command;
 mod replconf_command;
@@ -32,7 +34,7 @@ mod multi_command;
 mod exec_command;
 mod discard_command;
 
-pub async fn execute_command<'a, 'b>(command: Command, socket: &'a mut TcpStream, context: &'b CommandContext, transaction: Arc<Mutex<TransactionContainer>>) {
+pub async fn execute_command(command: Command, socket: &mut TcpStream, context: &CommandContext, transaction: Arc<Mutex<TransactionContainer>>) {
     let mut tx = transaction.lock().await;
 
     match command {
@@ -48,6 +50,7 @@ pub async fn execute_command<'a, 'b>(command: Command, socket: &'a mut TcpStream
         Command::Multi => multi_command(socket, context, command, &mut tx).await,
         Command::Exec => exec_command(socket, context, command, &mut tx).await,
         Command::Discard => discard_command(socket, context, command, &mut tx).await,
+        Command::Type(cmd) => type_command(socket, context, cmd).await,
         Command::Unrecognized => {
             println!("Unrecognized command");
             socket.write_all(b"+OK\r\n").await.unwrap();

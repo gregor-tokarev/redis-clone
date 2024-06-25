@@ -33,6 +33,13 @@ pub struct IncrCommand {
     pub step: isize,
 }
 
+#[derive(Debug, Clone)]
+pub struct TypeCommand {
+    pub key: String,
+}
+
+
+
 #[derive(Debug)]
 pub enum Command {
     Ping,
@@ -47,6 +54,7 @@ pub enum Command {
     Multi,
     Exec,
     Discard,
+    Type(TypeCommand),
     Unrecognized,
 }
 
@@ -117,6 +125,9 @@ impl<'a> Command {
             "multi" => Command::Multi,
             "exec" => Command::Exec,
             "discard" => Command::Discard,
+            "type" => Command::Type(TypeCommand {
+                key: main_statements[1].to_owned()
+            }),
             _ => Self::Unrecognized,
         })
     }
