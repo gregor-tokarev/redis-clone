@@ -1,10 +1,4 @@
-use std::{
-    char,
-    collections::HashMap,
-    time::{Duration},
-    u64,
-};
-
+use std::{char, collections::HashMap, isize, time::Duration, u64};
 
 use tokio::{
     fs,
@@ -66,7 +60,9 @@ impl RDB {
         format!("{}/{}", self.dirname, self.dbfilename)
     }
 
-    pub async fn start_sync(&mut self) -> Result<(StorageState, StorageExpire), Box<dyn std::error::Error>> {
+    pub async fn load_dump(
+        &mut self,
+    ) -> Result<(StorageState, StorageExpire), Box<dyn std::error::Error>> {
         if self.file.is_none() {
             self.ensure_file_exists().await.unwrap();
         };
@@ -141,7 +137,11 @@ impl RDB {
                     value_buf.push(c as char);
                 }
 
-                loaded_state.insert(key, Item::SimpleString(value_buf.into_iter().collect()));
+                let str_value = value_buf.into_iter().collect::<String>();
+                match str_value.parse::<isize>() {
+                    Ok(num) => loaded_state.insert(key, Item::Numeric(num)),
+                    Err(_) => loaded_state.insert(key, Item::SimpleString(str_value)),
+                };
             }
 
             println!("Dump loaded.");
