@@ -1,6 +1,5 @@
 use std::{
-    isize,
-    time::{SystemTime, UNIX_EPOCH},
+    isize, time::{SystemTime, UNIX_EPOCH},
 };
 
 use crate::{
@@ -14,7 +13,7 @@ pub async fn xadd_command(socket: &mut TcpStream, context: &CommandContext, comm
 
     let last_entry = storage.get_top_stream_item(command.key.clone()).await;
 
-    let (new_timestamp_statment, new_count_statement) = split_id(command.id.clone()).unwrap();
+    let (new_timestamp_statment, new_count_statement) = split_id(command.id.clone());
 
     let new_timestamp = match new_timestamp_statment {
         Some(t) => t,

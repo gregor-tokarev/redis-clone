@@ -1,6 +1,6 @@
-use std::{collections::HashMap, isize};
+use std::{collections::HashMap, fmt::format, isize};
 
-use crate::resp_utils::build_bulk;
+use crate::resp_utils::{build_array, build_bulk};
 
 #[derive(Debug, Clone)]
 pub struct StreamDataEntry {
@@ -28,16 +28,29 @@ impl StreamDataEntry {
     }
 }
 
-pub fn split_id(id: String) -> Result<(Option<isize>, Option<isize>), String> {
+impl StreamDataEntry {
+    pub fn build_bulk(&self) -> String {
+        let mut data_part = vec![];
+
+        for (key, value) in &self.data {
+            data_part.push(build_bulk(key.to_owned()));
+            data_part.push(build_bulk(value.to_owned()));
+        }
+
+        build_array(vec![build_bulk(self.id.clone()), build_array(data_part)])
+    }
+}
+
+pub fn split_id(id: String) -> (Option<isize>, Option<isize>) {
     if id.as_bytes() == b"*" {
-        return Ok((None, None));
+        return (None, None);
     };
 
     let mut split = id.split('-');
 
     let timestamp = match split
         .next()
-        .ok_or_else(|| String::from("parse error"))?
+        .unwrap_or("*")
         .parse::<isize>()
         .map_err(|_| None::<isize>)
     {
@@ -47,7 +60,7 @@ pub fn split_id(id: String) -> Result<(Option<isize>, Option<isize>), String> {
 
     let count = match split
         .next()
-        .ok_or_else(|| String::from("parse error"))?
+        .unwrap_or("*")
         .parse::<isize>()
         .map_err(|_| None::<isize>)
     {
@@ -55,7 +68,7 @@ pub fn split_id(id: String) -> Result<(Option<isize>, Option<isize>), String> {
         Err(_) => None,
     };
 
-    Ok((timestamp, count))
+    (timestamp, count)
 }
 
 #[derive(Debug, Clone)]

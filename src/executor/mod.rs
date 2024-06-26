@@ -14,6 +14,7 @@ use multi_command::multi_command;
 use ping_command::ping_command;
 use replconf_command::replconf_command;
 use set_command::set_command;
+use xrange_command::xrange_command;
 use std::sync::Arc;
 use tokio::io::AsyncWriteExt;
 use tokio::net::TcpStream;
@@ -35,6 +36,7 @@ mod replconf_command;
 pub mod set_command;
 mod type_command;
 mod xadd_command;
+mod xrange_command;
 
 pub async fn execute_command(
     command: Command,
@@ -59,6 +61,7 @@ pub async fn execute_command(
         Command::Discard => discard_command(socket, context, command, &mut tx).await,
         Command::Type(cmd) => type_command(socket, context, cmd).await,
         Command::XAdd(cmd) => xadd_command(socket, context, cmd).await,
+        Command::XRange(cmd) => xrange_command(socket, context, cmd).await,
         Command::Unrecognized => {
             println!("Unrecognized command");
             socket.write_all(b"+OK\r\n").await.unwrap();

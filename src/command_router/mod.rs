@@ -1,7 +1,9 @@
 use core::fmt;
-use std::collections::HashMap;
+use std::{collections::HashMap, str::FromStr};
 
 use config::ConfigCommand;
+
+use crate::storage::item::split_id;
 
 pub mod config;
 
@@ -45,6 +47,32 @@ pub struct XAddCommand {
     pub data: HashMap<String, String>,
 }
 
+#[derive(Debug, Clone)]
+pub enum XRangeStatement {
+    Id((Option<isize>, Option<isize>)),
+    Positive,
+    Negative,
+}
+
+impl FromStr for XRangeStatement {
+    type Err = ParsingError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "-" => Ok(Self::Negative),
+            "+" => Ok(Self::Positive),
+            id => Ok(Self::Id(split_id(id.to_owned()))),
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct XRangeCommand {
+    pub key: String,
+    pub start_statement: XRangeStatement,
+    pub end_statement: XRangeStatement,
+}
+
 #[derive(Debug)]
 pub enum Command {
     Ping,
@@ -61,6 +89,7 @@ pub enum Command {
     Discard,
     Type(TypeCommand),
     XAdd(XAddCommand),
+    XRange(XRangeCommand),
     Unrecognized,
 }
 
@@ -92,6 +121,7 @@ impl<'a> Command {
             main_statements.push(main_statement);
         }
 
+        println!("{:?}", main_statements);
         Ok(match *main_statements.first().ok_or(ParsingError)? {
             "ping" => Self::Ping,
             "echo" => Self::Echo(EchoCommand {
@@ -146,6 +176,16 @@ impl<'a> Command {
                 let mut data_value: Option<String> = None;
 
                 for itm in iter {
+                    let mut splitted = itm.split(" ");
+                    if splitted.clone().count() == 2 {
+                        let key = splitted.next().unwrap();
+                        let value = splitted.next().unwrap();
+
+                        data.insert(key.to_owned(), value.to_owned());
+                        continue;
+                    };
+
+                    println!("{:?}", itm);
                     if data_key.is_none() && data_value.is_none() {
                         data_key = Some(itm.to_owned());
                     } else if data_key.is_some() && data_value.is_none() {
@@ -162,6 +202,11 @@ impl<'a> Command {
 
                 Command::XAdd(XAddCommand { key, id, data })
             }
+            "xrange" => Command::XRange(XRangeCommand {
+                key: main_statements[1].to_owned(),
+                start_statement: main_statements[2].parse().unwrap(),
+                end_statement: main_statements[3].parse().unwrap(),
+            }),
             _ => Self::Unrecognized,
         })
     }
