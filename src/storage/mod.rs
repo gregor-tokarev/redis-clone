@@ -92,6 +92,11 @@ impl Storage {
                                         }
                                     }
                                 }
+                                XRangeStatement::Positive => {
+                                    if start_timestamp <= timestamp && start_count <= count {
+                                        all_key_items.push(entry);
+                                    }
+                                }
                                 _ => {}
                             }
                         }
