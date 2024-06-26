@@ -11,6 +11,10 @@ pub async fn xread_command(
     context: &CommandContext,
     command: XReadCommand,
 ) {
+    if let Some(blocking) = command.blocking {
+        tokio::time::sleep(blocking).await;
+    };
+
     let storage = context.storage.lock().await;
 
     let mut resp = vec![];
@@ -25,6 +29,11 @@ pub async fn xread_command(
             .await;
 
         if let Some(ref itms) = items {
+            println!("{itms:?}");
+            if itms.is_empty() {
+                continue;
+            }
+
             let list = itms
                 .iter()
                 .map(|stream| stream.build_bulk())
@@ -36,30 +45,13 @@ pub async fn xread_command(
             ]));
         }
     }
-    // let items = storage.get_range(command.key, command.start_statement, XRangeStatement::Positive).await;
 
-    socket
-        .write_all(build_array(resp).as_bytes())
-        .await
-        .unwrap();
-    // match items {
-    //     Some(itms) => {
-    //         let streams = itms
-    //             .into_iter()
-    //             .map(|stream| stream.build_bulk())
-    //             .collect::<Vec<String>>();
-    //         println!("{:?}", streams);
-    //
-    //         socket
-    //             .write_all(build_array(streams).as_bytes())
-    //             .await
-    //             .unwrap();
-    //     }
-    //     None => {
-    //         socket
-    //             .write_all(build_array(vec![]).as_bytes())
-    //             .await
-    //             .unwrap();
-    //     }
-    // };
+    if resp.is_empty() {
+        socket.write_all(b"$-1\r\n").await.unwrap()
+    } else {
+        socket
+            .write_all(build_array(resp).as_bytes())
+            .await
+            .unwrap();
+    }
 }

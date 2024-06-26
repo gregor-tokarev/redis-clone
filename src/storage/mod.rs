@@ -65,6 +65,8 @@ impl Storage {
                 );
             }
         };
+
+        println!("{:?}", state);
     }
 
     pub async fn get_range(
@@ -75,6 +77,7 @@ impl Storage {
         exclusive: bool,
     ) -> Option<Vec<StreamDataEntry>> {
         let item = self.get(key.as_str()).await;
+
 
         if let Some(Item::Stream(stream)) = item {
             let mut all_key_items = vec![];

@@ -1,5 +1,5 @@
 use core::fmt;
-use std::{collections::HashMap, iter::zip, str::FromStr};
+use std::{collections::HashMap, iter::zip, str::FromStr, time::Duration};
 
 use config::ConfigCommand;
 
@@ -76,6 +76,7 @@ pub struct XRangeCommand {
 #[derive(Debug, Clone)]
 pub struct XReadCommand {
     pub keys: Vec<(String, String)>,
+    pub blocking: Option<Duration>
 }
 
 #[derive(Debug)]
@@ -211,11 +212,26 @@ impl<'a> Command {
                 end_statement: main_statements[3].parse().unwrap(),
             }),
             "xread" => {
-                println!("{:?}", main_statements);
-                let list: Vec<&str> = if main_statements.len() == 3 {
-                    main_statements[2].split(' ').collect()
+                let mut blocking = None;
+                let mut base_iter = main_statements.clone().into_iter().skip(1);
+
+                let next = base_iter.next().unwrap();
+
+                let is_blocking = next == "block";
+                if is_blocking {
+                   let millis = base_iter.next().unwrap(); 
+                   base_iter.next().unwrap(); // skipping "streams"
+
+                   blocking = Some(Duration::from_millis(millis.parse().unwrap()))
+                }
+
+
+                let base_vec: Vec<&str> = base_iter.collect();
+
+                let list: Vec<&str> = if base_vec.len() == 3 {
+                    base_vec[2].split(' ').collect()
                 } else {
-                    main_statements.clone().into_iter().skip(2).collect()
+                    base_vec.clone().into_iter().collect()
                 };
 
                 let keys = list.clone().into_iter().take(list.len() / 2);
@@ -225,7 +241,7 @@ impl<'a> Command {
                     .map(|(key, id)| (key.to_owned(), id.to_owned()))
                     .collect();
 
-                Command::XRead(XReadCommand { keys: data })
+                Command::XRead(XReadCommand { keys: data, blocking })
             }
             _ => Self::Unrecognized,
         })
