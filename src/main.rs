@@ -7,7 +7,7 @@ use rdb::RDB;
 use replication::Replication;
 use std::sync::Arc;
 use storage::Storage;
-use tokio::io::AsyncReadExt;
+use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::TcpListener;
 use tokio::sync::Mutex;
 use transaction::TransactionContainer;
@@ -69,6 +69,7 @@ async fn main() {
                         let mut command_str = String::new();
 
                         let bytes_read = s.read(&mut buffer).await.unwrap();
+                        s.flush().await.unwrap();
 
                         command_str = format!(
                             "{}{}",

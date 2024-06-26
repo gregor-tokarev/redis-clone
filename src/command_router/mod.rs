@@ -121,7 +121,6 @@ impl<'a> Command {
             main_statements.push(main_statement);
         }
 
-        println!("{:?}", main_statements);
         Ok(match *main_statements.first().ok_or(ParsingError)? {
             "ping" => Self::Ping,
             "echo" => Self::Echo(EchoCommand {
@@ -176,7 +175,7 @@ impl<'a> Command {
                 let mut data_value: Option<String> = None;
 
                 for itm in iter {
-                    let mut splitted = itm.split(" ");
+                    let mut splitted = itm.split(' ');
                     if splitted.clone().count() == 2 {
                         let key = splitted.next().unwrap();
                         let value = splitted.next().unwrap();
@@ -185,7 +184,6 @@ impl<'a> Command {
                         continue;
                     };
 
-                    println!("{:?}", itm);
                     if data_key.is_none() && data_value.is_none() {
                         data_key = Some(itm.to_owned());
                     } else if data_key.is_some() && data_value.is_none() {

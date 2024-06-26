@@ -1,8 +1,5 @@
 use crate::{
-    command_context::CommandContext,
-    command_router::{Command, XRangeCommand},
-    resp_utils::build_array,
-    storage::item::StreamDataEntry,
+    command_context::CommandContext, command_router::XRangeCommand, resp_utils::build_array,
 };
 use tokio::{io::AsyncWriteExt, net::TcpStream};
 
@@ -19,17 +16,9 @@ pub async fn xrange_command(
         Some(itms) => {
             let streams = itms
                 .into_iter()
-                .map(|same_timestamp| {
-                    build_array(
-                        same_timestamp
-                            .iter()
-                            .map(|stream| stream.build_bulk())
-                            .inspect(|arr| println!("{arr:?}"))
-                            .collect(),
-                    )
-                })
+                .map(|stream| stream.build_bulk())
                 .collect::<Vec<String>>();
-                println!("{:?}", streams);
+            println!("{:?}", streams);
 
             socket
                 .write_all(build_array(streams).as_bytes())

@@ -1,4 +1,4 @@
-use std::{collections::HashMap, fmt::format, isize};
+use std::{collections::HashMap, isize};
 
 use crate::resp_utils::{build_array, build_bulk};
 

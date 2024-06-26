@@ -1,5 +1,6 @@
 use std::{
-    isize, time::{SystemTime, UNIX_EPOCH},
+    isize,
+    time::{SystemTime, UNIX_EPOCH},
 };
 
 use crate::{

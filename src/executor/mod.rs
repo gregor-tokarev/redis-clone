@@ -14,13 +14,13 @@ use multi_command::multi_command;
 use ping_command::ping_command;
 use replconf_command::replconf_command;
 use set_command::set_command;
-use xrange_command::xrange_command;
 use std::sync::Arc;
 use tokio::io::AsyncWriteExt;
 use tokio::net::TcpStream;
 use tokio::sync::Mutex;
 use type_command::type_command;
 use xadd_command::xadd_command;
+use xrange_command::xrange_command;
 
 mod config_command;
 mod discard_command;

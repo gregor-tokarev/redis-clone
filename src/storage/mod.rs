@@ -67,13 +67,14 @@ impl Storage {
         };
     }
 
-    pub async fn xrange(&self, xrange: XRangeCommand) -> Option<Vec<Vec<StreamDataEntry>>> {
+    pub async fn xrange(&self, xrange: XRangeCommand) -> Option<Vec<StreamDataEntry>> {
         let item = self.get(xrange.key.as_str()).await;
 
         if let Some(Item::Stream(stream)) = item {
             let mut all_key_items = vec![];
 
-            let mut same_timestamp: Vec<StreamDataEntry> = vec![];
+            // let mut same_timestamp: Vec<StreamDataEntry> = vec![];
+            println!("{:?}", stream.value.clone());
             for entry in stream.value {
                 let (timestamp, count) = entry.split_id().unwrap();
 
@@ -83,38 +84,11 @@ impl Storage {
                             match xrange.end_statement {
                                 XRangeStatement::Id(end_id) => {
                                     if let (Some(end_timestamp), Some(end_count)) = end_id {
-                                        println!("Comparison:");
-                                        println!(
-                                            "Timestamp - {} <= {} <= {}",
-                                            start_timestamp, timestamp, end_timestamp
-                                        );
-                                        println!(
-                                            "Count - {} <= {} <= {}\n",
-                                            start_count, count, end_count
-                                        );
                                         if (start_timestamp <= timestamp
                                             && timestamp <= end_timestamp)
                                             && (start_count <= count && count <= end_count)
                                         {
-                                            println!("Entry - {:?}", entry);
-                                            match same_timestamp.clone().last() {
-                                                Some(e) => {
-                                                    println!("{:?}", e.clone());
-                                                    let (last_temp_entry_timestamp, _) =
-                                                        e.split_id().unwrap();
-
-                                                    if last_temp_entry_timestamp == timestamp {
-                                                        same_timestamp.push(entry)
-                                                    } else if last_temp_entry_timestamp < timestamp
-                                                    {
-                                                        all_key_items.push(same_timestamp.clone());
-                                                        same_timestamp.clear();
-                                                    }
-                                                }
-                                                None => same_timestamp.push(entry),
-                                            };
-
-                                            println!("{:?}", same_timestamp.clone());
+                                            all_key_items.push(entry);
                                         }
                                     }
                                 }
@@ -124,11 +98,6 @@ impl Storage {
                     }
                     _ => {}
                 };
-                println!("\n\n\n");
-            }
-
-            if !same_timestamp.is_empty() {
-               all_key_items.push(same_timestamp);
             }
 
             return Some(all_key_items);
