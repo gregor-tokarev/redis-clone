@@ -1,5 +1,5 @@
 use core::fmt;
-use std::{collections::HashMap, str::FromStr};
+use std::{collections::HashMap, iter::zip, str::FromStr};
 
 use config::ConfigCommand;
 
@@ -73,6 +73,11 @@ pub struct XRangeCommand {
     pub end_statement: XRangeStatement,
 }
 
+#[derive(Debug, Clone)]
+pub struct XReadCommand {
+    pub keys: Vec<(String, String)>,
+}
+
 #[derive(Debug)]
 pub enum Command {
     Ping,
@@ -90,6 +95,7 @@ pub enum Command {
     Type(TypeCommand),
     XAdd(XAddCommand),
     XRange(XRangeCommand),
+    XRead(XReadCommand),
     Unrecognized,
 }
 
@@ -173,7 +179,6 @@ impl<'a> Command {
 
                 let mut data_key: Option<String> = None;
                 let mut data_value: Option<String> = None;
-
                 for itm in iter {
                     let mut splitted = itm.split(' ');
                     if splitted.clone().count() == 2 {
@@ -205,6 +210,23 @@ impl<'a> Command {
                 start_statement: main_statements[2].parse().unwrap(),
                 end_statement: main_statements[3].parse().unwrap(),
             }),
+            "xread" => {
+                println!("{:?}", main_statements);
+                let list: Vec<&str> = if main_statements.len() == 3 {
+                    main_statements[2].split(' ').collect()
+                } else {
+                    main_statements.clone().into_iter().skip(2).collect()
+                };
+
+                let keys = list.clone().into_iter().take(list.len() / 2);
+                let ids = list.clone().into_iter().skip(list.len() / 2);
+
+                let data = zip(keys, ids)
+                    .map(|(key, id)| (key.to_owned(), id.to_owned()))
+                    .collect();
+
+                Command::XRead(XReadCommand { keys: data })
+            }
             _ => Self::Unrecognized,
         })
     }

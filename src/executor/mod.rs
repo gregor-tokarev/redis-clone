@@ -21,6 +21,7 @@ use tokio::sync::Mutex;
 use type_command::type_command;
 use xadd_command::xadd_command;
 use xrange_command::xrange_command;
+use xread_command::xread_command;
 
 mod config_command;
 mod discard_command;
@@ -37,6 +38,7 @@ pub mod set_command;
 mod type_command;
 mod xadd_command;
 mod xrange_command;
+mod xread_command;
 
 pub async fn execute_command(
     command: Command,
@@ -62,6 +64,7 @@ pub async fn execute_command(
         Command::Type(cmd) => type_command(socket, context, cmd).await,
         Command::XAdd(cmd) => xadd_command(socket, context, cmd).await,
         Command::XRange(cmd) => xrange_command(socket, context, cmd).await,
+        Command::XRead(cmd) => xread_command(socket, context, cmd).await,
         Command::Unrecognized => {
             println!("Unrecognized command");
             socket.write_all(b"+OK\r\n").await.unwrap();

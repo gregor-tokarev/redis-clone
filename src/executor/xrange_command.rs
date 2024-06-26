@@ -10,7 +10,14 @@ pub async fn xrange_command(
 ) {
     let storage = context.storage.lock().await;
 
-    let items = storage.xrange(command).await;
+    let items = storage
+        .get_range(
+            command.key,
+            command.start_statement,
+            command.end_statement,
+            false,
+        )
+        .await;
 
     match items {
         Some(itms) => {

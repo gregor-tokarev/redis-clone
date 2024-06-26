@@ -7,7 +7,7 @@ use std::{
 use item::{Item, StreamDataEntry};
 use tokio::sync::Mutex;
 
-use crate::command_router::{XRangeCommand, XRangeStatement};
+use crate::command_router::XRangeStatement;
 
 pub mod item;
 
@@ -67,21 +67,25 @@ impl Storage {
         };
     }
 
-    pub async fn xrange(&self, xrange: XRangeCommand) -> Option<Vec<StreamDataEntry>> {
-        let item = self.get(xrange.key.as_str()).await;
+    pub async fn get_range(
+        &self,
+        key: String,
+        range_start: XRangeStatement,
+        range_end: XRangeStatement,
+        exclusive: bool,
+    ) -> Option<Vec<StreamDataEntry>> {
+        let item = self.get(key.as_str()).await;
 
         if let Some(Item::Stream(stream)) = item {
             let mut all_key_items = vec![];
 
-            // let mut same_timestamp: Vec<StreamDataEntry> = vec![];
-            println!("{:?}", stream.value.clone());
             for entry in stream.value {
                 let (timestamp, count) = entry.split_id().unwrap();
 
-                match xrange.start_statement {
+                match range_start {
                     XRangeStatement::Id(start_id) => {
                         if let (Some(start_timestamp), Some(start_count)) = start_id {
-                            match xrange.end_statement {
+                            match range_end {
                                 XRangeStatement::Id(end_id) => {
                                     if let (Some(end_timestamp), Some(end_count)) = end_id {
                                         if (start_timestamp <= timestamp
@@ -93,7 +97,13 @@ impl Storage {
                                     }
                                 }
                                 XRangeStatement::Positive => {
-                                    if start_timestamp <= timestamp && start_count <= count {
+                                    let condition = if exclusive {
+                                        start_timestamp <= timestamp && start_count < count
+                                    } else {
+                                        start_timestamp <= timestamp && start_count <= count
+                                    };
+
+                                    if condition {
                                         all_key_items.push(entry);
                                     }
                                 }
@@ -101,7 +111,7 @@ impl Storage {
                             }
                         }
                     }
-                    XRangeStatement::Negative => match xrange.end_statement {
+                    XRangeStatement::Negative => match range_end {
                         XRangeStatement::Id(end_id) => {
                             if let (Some(end_timestamp), Some(end_count)) = end_id {
                                 if timestamp <= end_timestamp && count <= end_count {
