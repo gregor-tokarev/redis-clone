@@ -96,6 +96,16 @@ impl Storage {
                             }
                         }
                     }
+                    XRangeStatement::Negative => match xrange.end_statement {
+                        XRangeStatement::Id(end_id) => {
+                            if let (Some(end_timestamp), Some(end_count)) = end_id {
+                                if timestamp <= end_timestamp && count <= end_count {
+                                    all_key_items.push(entry);
+                                }
+                            }
+                        }
+                        _ => {}
+                    },
                     _ => {}
                 };
             }
