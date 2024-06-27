@@ -78,5 +78,11 @@ pub async fn xadd_command(socket: &mut TcpStream, context: &CommandContext, comm
 
             socket.write_all(build_bulk(id).as_bytes()).await.unwrap();
         }
+    };
+
+    let blocking = context.in_block.lock().await;
+    println!("{}", blocking);
+    if *blocking {
+        context.blocking_tx.lock().await.send(()).await.unwrap();
     }
 }

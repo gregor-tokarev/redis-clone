@@ -76,7 +76,7 @@ pub struct XRangeCommand {
 #[derive(Debug, Clone)]
 pub struct XReadCommand {
     pub keys: Vec<(String, String)>,
-    pub blocking: Option<Duration>
+    pub blocking: Option<Duration>,
 }
 
 #[derive(Debug)]
@@ -219,12 +219,11 @@ impl<'a> Command {
 
                 let is_blocking = next == "block";
                 if is_blocking {
-                   let millis = base_iter.next().unwrap(); 
-                   base_iter.next().unwrap(); // skipping "streams"
+                    let millis = base_iter.next().unwrap();
+                    base_iter.next().unwrap(); // skipping "streams"
 
-                   blocking = Some(Duration::from_millis(millis.parse().unwrap()))
+                    blocking = Some(Duration::from_millis(millis.parse().unwrap()))
                 }
-
 
                 let base_vec: Vec<&str> = base_iter.collect();
 
@@ -241,7 +240,10 @@ impl<'a> Command {
                     .map(|(key, id)| (key.to_owned(), id.to_owned()))
                     .collect();
 
-                Command::XRead(XReadCommand { keys: data, blocking })
+                Command::XRead(XReadCommand {
+                    keys: data,
+                    blocking,
+                })
             }
             _ => Self::Unrecognized,
         })

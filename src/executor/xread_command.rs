@@ -4,6 +4,7 @@ use crate::{
     resp_utils::{build_array, build_bulk},
     storage::item::split_id,
 };
+
 use tokio::{io::AsyncWriteExt, net::TcpStream};
 
 pub async fn xread_command(
@@ -12,7 +13,17 @@ pub async fn xread_command(
     command: XReadCommand,
 ) {
     if let Some(blocking) = command.blocking {
-        tokio::time::sleep(blocking).await;
+        if blocking.as_millis() != 0 {
+            tokio::time::sleep(blocking).await;
+        } else {
+            {
+                let mut blocking = context.in_block.lock().await;
+                *blocking = true;
+            }
+
+            let mut rx = context.blocing_rx.lock().await;
+            rx.recv().await;
+        }
     };
 
     let storage = context.storage.lock().await;
@@ -53,5 +64,8 @@ pub async fn xread_command(
             .write_all(build_array(resp).as_bytes())
             .await
             .unwrap();
-    }
+    };
+
+    let mut blocking = context.in_block.lock().await;
+    *blocking = false;
 }
