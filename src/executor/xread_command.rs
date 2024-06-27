@@ -37,10 +37,9 @@ pub async fn xread_command(
                 Some(entry) => XRangeStatement::Id(split_id(entry.id)),
                 None => {
                     socket.write_all(b"$-1\r\n").await.unwrap();
-                    return
+                    return;
                 }
             }
-            
         } else {
             XRangeStatement::Id(split_id(id.clone()))
         };

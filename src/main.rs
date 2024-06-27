@@ -7,7 +7,7 @@ use rdb::RDB;
 use replication::Replication;
 use std::sync::Arc;
 use storage::Storage;
-use tokio::io::{AsyncReadExt};
+use tokio::io::AsyncReadExt;
 use tokio::net::TcpListener;
 use tokio::sync::Mutex;
 use transaction::TransactionContainer;
