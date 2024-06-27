@@ -30,17 +30,31 @@ pub async fn xread_command(
 
     let mut resp = vec![];
     for (key, id) in command.keys {
+        let start_statement = if id.clone() == "$" {
+            let last_entry = storage.get_top_stream_item(key.clone()).await;
+
+            match last_entry {
+                Some(entry) => XRangeStatement::Id(split_id(entry.id)),
+                None => {
+                    socket.write_all(b"$-1\r\n").await.unwrap();
+                    return
+                }
+            }
+            
+        } else {
+            XRangeStatement::Id(split_id(id.clone()))
+        };
+
         let items = storage
             .get_range(
                 key.clone(),
-                XRangeStatement::Id(split_id(id)),
+                start_statement,
                 XRangeStatement::Positive,
-                true,
+                id != "$",
             )
             .await;
 
         if let Some(ref itms) = items {
-            println!("{itms:?}");
             if itms.is_empty() {
                 continue;
             }

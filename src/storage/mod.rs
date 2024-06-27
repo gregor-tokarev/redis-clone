@@ -65,8 +65,6 @@ impl Storage {
                 );
             }
         };
-
-        println!("{:?}", state);
     }
 
     pub async fn get_range(

@@ -240,6 +240,7 @@ impl<'a> Command {
                     .map(|(key, id)| (key.to_owned(), id.to_owned()))
                     .collect();
 
+
                 Command::XRead(XReadCommand {
                     keys: data,
                     blocking,
